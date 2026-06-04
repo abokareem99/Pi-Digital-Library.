@@ -1,44 +1,103 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتبة باي الرقمية</title>
-    <!-- استيراد مكتبة Pi SDK -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        piGold: '#f4b814',
+                        piDark: '#0f172a',
+                        piCard: '#1e293b',
+                        piHover: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body>
-    <h1>مكتبة باي الرقمية</h1>
-    <button id="pay-button">شراء الكتاب بـ 1 Pi</button>
+<body class="antialiased">
+
+    <header class="border-b border-gray-800 bg-piDark sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-piGold rounded-full flex items-center justify-center text-piDark font-bold text-xl">Pi</div>
+                <h1 class="text-2xl font-bold tracking-wide">مكتبة <span class="text-piGold">باي</span></h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <div id="booksGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+    </main>
+
+    <div id="bookModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="bg-piCard p-8 rounded-2xl w-11/12 md:w-1/2">
+            <h2 id="modalTitle" class="text-3xl font-bold mb-4"></h2>
+            <p id="modalPrice" class="text-2xl text-piGold font-bold mb-6"></p>
+            <button id="buyButton" class="w-full bg-piGold text-piDark font-bold py-3 rounded-lg">شراء وتحميل</button>
+            <button onclick="closeModal()" class="w-full mt-4 text-gray-400">إلغاء</button>
+        </div>
+    </div>
 
     <script>
+        // تهيئة الـ Pi SDK
         const Pi = window.Pi;
-        Pi.init({ version: "2.0" });
+        Pi.init({ version: "2.0", sandbox: true });
 
-        document.getElementById('pay-button').addEventListener('click', async () => {
-            try {
-                const payment = await Pi.createPayment({
-                    amount: 1,
-                    memo: "شراء كتاب من مكتبة باي",
-                    metadata: { bookId: "123" }
-                }, {
-                    onReadyForServerApproval: (paymentId) => {
-                        console.log("جاهز للموافقة:", paymentId);
-                        // هنا سيتم إرسال الـ paymentId لخادمك
-                    },
-                    onReadyForServerCompletion: (paymentId, txid) => {
-                        console.log("اكتمل الدفع:", txid);
-                    },
-                    onCancel: (paymentId) => {
-                        alert("تم إلغاء عملية الدفع");
-                    },
-                    onError: (error, payment) => {
-                        alert("حدث خطأ: " + error);
-                    }
-                });
-            } catch (err) {
-                console.error("خطأ في الاتصال:", err);
-            }
-        });
+        const books = [
+            { id: 1, title: "الرحيق المختوم", price: 0.5, cover: "🕌" },
+            { id: 2, title: "مقدمة ابن خلدون", price: 0.8, cover: "🏛️" }
+        ];
+
+        function renderBooks() {
+            const grid = document.getElementById('booksGrid');
+            grid.innerHTML = books.map(book => `
+                <div onclick="openModal(${book.id})" class="bg-piCard p-5 rounded-xl cursor-pointer text-center">
+                    <div class="text-6xl mb-4">${book.cover}</div>
+                    <h3 class="font-bold">${book.title}</h3>
+                    <p class="text-piGold">${book.price} Pi</p>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id) {
+            const book = books.find(b => b.id === id);
+            document.getElementById('modalTitle').innerText = book.title;
+            document.getElementById('modalPrice').innerText = book.price + " Pi";
+            
+            document.getElementById('buyButton').onclick = async () => {
+                try {
+                    await Pi.createPayment({
+                        amount: book.price,
+                        memo: "شراء كتاب: " + book.title,
+                        metadata: { bookId: id }
+                    }, {
+                        onReadyForServerApproval: (id) => alert("تم إنشاء الطلب، يرجى الموافقة في المحفظة"),
+                        onReadyForServerCompletion: (id, tx) => alert("تمت العملية بنجاح!"),
+                        onCancel: () => alert("تم إلغاء الدفع"),
+                        onError: (e) => alert("خطأ: " + e.message)
+                    });
+                } catch (e) {
+                    alert("تأكد أنك تستخدم متصفح Pi Browser");
+                }
+            };
+            document.getElementById('bookModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
+        window.onload = renderBooks;
     </script>
 </body>
 </html>
