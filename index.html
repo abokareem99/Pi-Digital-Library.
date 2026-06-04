@@ -29,22 +29,22 @@
         const Pi = window.Pi;
         Pi.init({ version: "2.0", sandbox: true });
 
-        // دالة لتوثيق دخول المستخدم تلقائياً عند فتح التطبيق
+        // دالة التوثيق مع إظهار الخطأ الحقيقي إن وجد لسهولة الفحص
         async function authPiUser() {
             try {
                 const scopes = ['username', 'payments'];
-                function onIncompletePaymentFound(payment) {
-                    // إذا وُجدت معاملة معلقة، يتم إرسالها لملف الـ complete لإغلاقها
+                await Pi.authenticate(scopes, function(payment) {
+                    // إذا وُجدت معاملة معلقة يتم إغلاقها عبر السيرفر فوراً
                     fetch('/api/complete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
                     });
-                }
-                await Pi.authenticate(scopes, onIncompletePaymentFound);
-                console.log("تم تسجيل دخول المستخدم بنجاح في شبكة باي");
+                });
+                console.log("تم التوثيق بنجاح في شبكة باي");
             } catch (err) {
-                console.error("خطأ في التوثيق:", err);
+                // إظهار سبب فشل الاتصال الأولي بالشبكة بدقة
+                alert("خطأ التوثيق الأولي من الشبكة: " + (err.message || err));
             }
         }
 
@@ -83,18 +83,16 @@
                         memo: "شراء كتاب: " + book.title,
                         metadata: { bookId: id }
                     }, {
-                        // تعديل: إضافة return وإرجاع الاستجابة للسيرفر الرئيسي لشبكة باي
                         onReadyForServerApproval: (paymentId) => {
                             return fetch('/api/approve', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
                             }).then(res => {
-                                if (!res.ok) throw new Error("فشلت موافقة السيرفر");
+                                if (!res.ok) throw new Error("السيرفر رفض الموافقة - كود الخطأ: " + res.status);
                                 return res.json();
                             });
                         },
-                        // تعديل: إضافة return للتأكيد النهائي وإظهار التنبيه للمستخدم بعد النجاح
                         onReadyForServerCompletion: (paymentId, txid) => {
                             return fetch('/api/complete', {
                                 method: 'POST',
@@ -102,25 +100,27 @@
                                 body: JSON.stringify({ paymentId, txid })
                             }).then(res => {
                                 if (res.ok) {
-                                    alert("تمت العملية بنجاح! تم تأكيد الدفع وشراء الكتاب.");
+                                    alert("تمت العملية بنجاح! تم تأكيد الدفع.");
                                     closeModal();
                                 } else {
-                                    alert("فشل تأكيد عملية الدفع النهائية.");
+                                    alert("فشل السيرفر في التأكيد النهائي للمعاملة.");
                                 }
                                 return res.json();
                             });
                         },
-                        onCancel: () => alert("تم إلغاء الدفع"),
-                        onError: (e) => alert("خطأ: " + e.message)
+                        onCancel: () => alert("تم إلغاء الدفع من قبل المستخدم"),
+                        onError: (e) => alert("خطأ من الـ Pi SDK: " + e.message)
                     });
-                } catch (e) { alert("تأكد أنك تستخدم متصفح Pi Browser"); }
+                } catch (e) { 
+                    // هنا سيظهر لك المتصفح السبب الحقيقي والخطأ الفعلي بدلاً من الرسالة القديمة المضللة
+                    alert("فشل إنشاء طلب الدفع. السبب الفعلي: " + e.message); 
+                }
             };
             document.getElementById('bookModal').classList.remove('hidden');
         }
 
         function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
         
-        // تشغيل عرض الكتب وتوثيق الحساب فور تحميل الصفحة
         window.onload = () => {
             renderBooks();
             authPiUser();
