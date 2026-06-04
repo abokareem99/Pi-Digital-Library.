@@ -64,8 +64,21 @@
                         memo: "شراء كتاب: " + book.title,
                         metadata: { bookId: id }
                     }, {
-                        onReadyForServerApproval: (id) => alert("تم إنشاء الطلب، يرجى الموافقة في المحفظة"),
-                        onReadyForServerCompletion: (id, tx) => alert("تمت العملية بنجاح!"),
+                        // هنا يتم توجيه الطلبات إلى الـ API الخاص بـ Vercel (خادمك)
+                        onReadyForServerApproval: (paymentId) => {
+                            fetch('/api/approve', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paymentId })
+                            });
+                        },
+                        onReadyForServerCompletion: (paymentId, txid) => {
+                            fetch('/api/complete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paymentId, txid })
+                            }).then(() => alert("تمت العملية بنجاح!"));
+                        },
                         onCancel: () => alert("تم إلغاء الدفع"),
                         onError: (e) => alert("خطأ: " + e.message)
                     });
