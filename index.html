@@ -14,7 +14,6 @@
 <body class="p-4">
     <h1 class="text-2xl font-bold text-center mb-4">مكتبة باي الرقمية</h1>
     
-    <!-- شريط حالة التوثيق الذكي المطور -->
     <div id="authStatus" class="text-center p-3 mb-6 rounded-lg text-sm bg-yellow-900 text-yellow-300 font-bold animate-pulse">
         جاري تهيئة النظام والاتصال بشركة باي...
     </div>
@@ -31,13 +30,12 @@
     </div>
 
     <script>
-        const APP_ID = "digital-library-fc6a5a2b23afc76b";
         const books = [
             { id: 1, title: "الرحيق المختوم", author: "صفي الرحمن", icon: "🕌" },
             { id: 2, title: "مقدمة ابن خلدون", author: "ابن خلدون", icon: "🏛️" },
             { id: 3, title: "ثروة الأمم", author: "آدم سميث", icon: "📈" },
             { id: 4, title: "الخيميائي", author: "باولو كويلو", icon: "✨" },
-            { id: 5, title: "شيفرة دافنشي", author: "دان براون", icon: "🕵️" },
+            { id: 5, title: "شيفرة dafnshi", author: "دان براون", icon: "🕵️" },
             { id: 6, title: "تاريخ موجز للزمن", author: "ستيفن هوكينغ", icon: "🔬" },
             { id: 7, title: "الكون", author: "كارل ساغان", icon: "🌌" },
             { id: 8, title: "عشرون ألف فرسخ", author: "جول فيرن", icon: "🌊" },
@@ -57,43 +55,37 @@
             }
         }
 
-        // دالة مدمجة ومضمونة التتابع للتهيئة والتوثيق معاً
+        // دالة التعامل مع المدفوعات المعلقة لإغلاقها ومنع تعليق المهلة
+        const onIncompletePaymentFound = (payment) => {
+            console.log("تم العثور على دفعة معلقة، جاري إغلاقها:", payment);
+            return fetch('/api/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
+            });
+        };
+
         async function startPiIntegration() {
             const statusDiv = document.getElementById('authStatus');
-            
-            // انتظر نصف ثانية للتأكد من تحميل ملف الـ SDK في المتصفح تماماً
             await new Promise(resolve => setTimeout(resolve, 500));
 
             if (!window.Pi) {
-                statusDiv.innerText = "🔴 خطأ: لم يتم تحميل ملفات Pi SDK، تأكد من الاتصال بالإنترنت.";
+                statusDiv.innerText = "🔴 خطأ: لم يتم تحميل ملفات Pi SDK.";
                 statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
                 return;
             }
 
             try {
-                // 1. تنفيذ التهيئة أولاً بنجاح
+                // تهيئة النظام
                 await window.Pi.init({ version: "2.0", sandbox: true });
-                console.log("تمت التهيئة بنجاح");
                 
-                // 2. طلب صلاحيات الدفع والتوثيق فوراً بعد نجاح التهيئة
-                const scopes = ['username', 'payments'];
-                window.Pi.authenticate(scopes, function(payment) {
-                    fetch('/api/complete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
-                    });
-                }).then(authResult => {
-                    // تحويل الشريط للون الأخضر عند نجاح الاتصال الكامل
-                    statusDiv.innerText = `🟢 متصل بنجاح: ${authResult.user.username}`;
-                    statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
-                }).catch(authError => {
-                    statusDiv.innerText = `🔴 فشل التوثيق: ${authError.message || authError}`;
-                    statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
-                });
-
-            } catch (initError) {
-                statusDiv.innerText = `🔴 خطأ في التهيئة: ${initError.message || initError}`;
+                // التوثيق وربط الحساب بالشكل الرسمي الصحيح
+                const auth = await window.Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
+                
+                statusDiv.innerText = `🟢 متصل بنجاح: ${auth.user.username}`;
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
+            } catch (error) {
+                statusDiv.innerText = `🔴 خطأ في الاتصال بالنظام: ${error.message || error}`;
                 statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
             }
         }
@@ -106,18 +98,16 @@
             document.getElementById('buyButton').onclick = async () => {
                 try {
                     await window.Pi.createPayment({
-                        amount: 1,
+                        amount: 0.1, // نصيحة: يفضل البدء بقيم صغيرة جداً في التست نت للتجربة الفورية
                         memo: "شراء كتاب: " + book.title,
                         metadata: { bookId: id }
                     }, {
                         onReadyForServerApproval: (paymentId) => {
+                            // إرسال الطلب مباشرة بدون تشتيت الـ SDK بـ Promises داخلية
                             return fetch('/api/approve', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
-                            }).then(res => {
-                                if (!res.ok) throw new Error("السيرفر رفض الموافقة - كود الخطأ: " + res.status);
-                                return res.json();
                             });
                         },
                         onReadyForServerCompletion: (paymentId, txid) => {
@@ -127,19 +117,18 @@
                                 body: JSON.stringify({ paymentId, txid })
                             }).then(res => {
                                 if (res.ok) {
-                                    alert("تمت العملية بنجاح! تم تأكيد الدفع.");
+                                    alert("🎉 تمت العملية بنجاح تام! تم شراء الكتاب بنجاح.");
                                     closeModal();
                                 } else {
-                                    alert("فشل السيرفر في التأكيد النهائي للمعاملة.");
+                                    alert("فشل تأكيد السيرفر، يرجى مراجعة الـ Logs.");
                                 }
-                                return res.json();
                             });
                         },
                         onCancel: () => alert("تم إلغاء عملية الدفع"),
-                        onError: (e) => alert("خطأ من الـ Pi SDK: " + e.message)
+                        onError: (error) => alert("خطأ من شبكة باي: " + error.message)
                     });
                 } catch (e) { 
-                    alert("عذراً، لا يمكن الدفع حالياً: " + e.message); 
+                    alert("عذراً، لا يمكن إنشاء الدفع: " + e.message); 
                 }
             };
             document.getElementById('bookModal').classList.remove('hidden');
