@@ -14,9 +14,9 @@
 <body class="p-4">
     <h1 class="text-2xl font-bold text-center mb-4">مكتبة باي الرقمية</h1>
     
-    <!-- شريط حالة التوثيق الذكي للكشف عن الاتصال فوراً -->
+    <!-- شريط حالة التوثيق الذكي المطور -->
     <div id="authStatus" class="text-center p-3 mb-6 rounded-lg text-sm bg-yellow-900 text-yellow-300 font-bold animate-pulse">
-        جاري الاتصال بشبكة باي وتأكيد الصلاحيات...
+        جاري تهيئة النظام والاتصال بشركة باي...
     </div>
 
     <div id="booksGrid" class="grid grid-cols-2 gap-4"></div>
@@ -32,47 +32,6 @@
 
     <script>
         const APP_ID = "digital-library-fc6a5a2b23afc76b";
-        
-        // تهيئة الـ SDK فوراً عند تحميل الملف
-        if (window.Pi) {
-            try {
-                window.Pi.init({ version: "2.0", sandbox: true });
-            } catch (e) {
-                console.error("فشلت التهيئة المبدئية:", e);
-            }
-        }
-
-        // دالة التوثيق وتسجيل الدخول
-        async function authPiUser() {
-            const statusDiv = document.getElementById('authStatus');
-            if (!window.Pi) {
-                statusDiv.innerText = "خطأ: لم يتم تحميل ملفات Pi SDK الخارجية.";
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-900 text-red-300 font-bold";
-                return;
-            }
-            
-            try {
-                const scopes = ['username', 'payments'];
-                // استدعاء التوثيق الرسمي
-                const authResult = await window.Pi.authenticate(scopes, function(payment) {
-                    // معالجة المدفوعات المعلقة إن وجدت
-                    fetch('/api/complete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
-                    });
-                });
-                
-                // إذا نجح التوثيق يتغير الشريط للون الأخضر ويظهر اسم المستخدم
-                statusDiv.innerText = `🟢 متصل بنجاح كـ مطور: ${authResult.user.username}`;
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
-            } catch (err) {
-                // إذا فشل يظهر السبب مباشرة في الشريط الأحمر
-                statusDiv.innerText = `🔴 فشل منح صلاحية الدفع. السبب: ${err.message || err}\n(تأكد من فتح الرابط المباشر ومطابقته في develop.pi)`;
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
-            }
-        }
-
         const books = [
             { id: 1, title: "الرحيق المختوم", author: "صفي الرحمن", icon: "🕌" },
             { id: 2, title: "مقدمة ابن خلدون", author: "ابن خلدون", icon: "🏛️" },
@@ -95,6 +54,47 @@
                         <p class="font-bold text-sm">${book.title}</p>
                     </div>
                 `).join('');
+            }
+        }
+
+        // دالة مدمجة ومضمونة التتابع للتهيئة والتوثيق معاً
+        async function startPiIntegration() {
+            const statusDiv = document.getElementById('authStatus');
+            
+            // انتظر نصف ثانية للتأكد من تحميل ملف الـ SDK في المتصفح تماماً
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            if (!window.Pi) {
+                statusDiv.innerText = "🔴 خطأ: لم يتم تحميل ملفات Pi SDK، تأكد من الاتصال بالإنترنت.";
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
+                return;
+            }
+
+            try {
+                // 1. تنفيذ التهيئة أولاً بنجاح
+                await window.Pi.init({ version: "2.0", sandbox: true });
+                console.log("تمت التهيئة بنجاح");
+                
+                // 2. طلب صلاحيات الدفع والتوثيق فوراً بعد نجاح التهيئة
+                const scopes = ['username', 'payments'];
+                window.Pi.authenticate(scopes, function(payment) {
+                    fetch('/api/complete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
+                    });
+                }).then(authResult => {
+                    // تحويل الشريط للون الأخضر عند نجاح الاتصال الكامل
+                    statusDiv.innerText = `🟢 متصل بنجاح: ${authResult.user.username}`;
+                    statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
+                }).catch(authError => {
+                    statusDiv.innerText = `🔴 فشل التوثيق: ${authError.message || authError}`;
+                    statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
+                });
+
+            } catch (initError) {
+                statusDiv.innerText = `🔴 خطأ في التهيئة: ${initError.message || initError}`;
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
             }
         }
 
@@ -130,7 +130,7 @@
                                     alert("تمت العملية بنجاح! تم تأكيد الدفع.");
                                     closeModal();
                                 } else {
-                                    alert("فشل السيرفر في التأكيد النهائي المعاملة.");
+                                    alert("فشل السيرفر في التأكيد النهائي للمعاملة.");
                                 }
                                 return res.json();
                             });
@@ -149,7 +149,7 @@
         
         window.onload = () => {
             renderBooks();
-            authPiUser();
+            startPiIntegration();
         };
     </script>
 </body>
