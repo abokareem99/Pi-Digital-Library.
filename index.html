@@ -27,21 +27,33 @@
     <script>
         const APP_ID = "digital-library-fc6a5a2b23afc76b";
         
-        // دالة التوثيق مع حساب باي
+        // إعادة تهيئة المكتبة بشكل عالمي ومباشر (Global) فور تحميل الملف، وهو الوضع القياسي الصحيح
+        if (window.Pi) {
+            try {
+                window.Pi.init({ version: "2.0", sandbox: true });
+                console.log("تمت تهيئة Pi SDK بنجاح في الخلفية");
+            } catch (e) {
+                console.error("فشلت التهيئة المبدئية:", e);
+            }
+        }
+
+        // دالة التوثيق وتسجيل دخول حساب المستخدم
         async function authPiUser() {
+            if (!window.Pi) return;
             try {
                 const scopes = ['username', 'payments'];
                 await window.Pi.authenticate(scopes, function(payment) {
-                    // إغلاق أي معاملة معلقة فوراً عبر السيرفر
+                    // معالجة المدفوعات المعلقة تلقائياً عبر السيرفر إن وُجدت لإغلاقها
                     fetch('/api/complete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
                     });
                 });
-                console.log("تم التوثيق بنجاح في شبكة باي");
+                console.log("تم التوثيق والاتصال بالشبكة بنجاح");
             } catch (err) {
-                alert("خطأ التوثيق الأولي من الشبكة: " + (err.message || err));
+                // هذا التنبيه سيختفي تماماً بمجرد تشغيل الرابط عبر ملقم sandbox.minepi.com المعتمد
+                alert("تنبيه التوثيق: " + (err.message || err) + "\n\n💡 الحل: يجب فتح الموقع من داخل الرابط الإجباري: sandbox.minepi.com");
             }
         }
 
@@ -60,12 +72,14 @@
 
         function renderBooks() {
             const grid = document.getElementById('booksGrid');
-            grid.innerHTML = books.map(book => `
-                <div onclick="openModal(${book.id})" class="bg-slate-800 p-4 rounded-lg text-center cursor-pointer hover:bg-slate-700 transition">
-                    <div class="text-4xl mb-2">${book.icon}</div>
-                    <p class="font-bold text-sm">${book.title}</p>
-                </div>
-            `).join('');
+            if (grid) {
+                grid.innerHTML = books.map(book => `
+                    <div onclick="openModal(${book.id})" class="bg-slate-800 p-4 rounded-lg text-center cursor-pointer hover:bg-slate-700 transition">
+                        <div class="text-4xl mb-2">${book.icon}</div>
+                        <p class="font-bold text-sm">${book.title}</p>
+                    </div>
+                `).join('');
+            }
         }
 
         function openModal(id) {
@@ -97,7 +111,7 @@
                                 body: JSON.stringify({ paymentId, txid })
                             }).then(res => {
                                 if (res.ok) {
-                                    alert("تمت العملية بنجاح! تم تأكيد الدفع.");
+                                    alert("تمت العملية بنجاح! تم تأكيد الدفع في السيرفر وشراء الكتاب.");
                                     closeModal();
                                 } else {
                                     alert("فشل السيرفر في التأكيد النهائي للمعاملة.");
@@ -105,11 +119,11 @@
                                 return res.json();
                             });
                         },
-                        onCancel: () => alert("تم إلغاء الدفع من قبل المستخدم"),
+                        onCancel: () => alert("تم إلغاء عملية الدفع"),
                         onError: (e) => alert("خطأ من الـ Pi SDK: " + e.message)
                     });
                 } catch (e) { 
-                    alert("فشل إنشاء طلب الدفع. السبب الفعلي: " + e.message); 
+                    alert("فشل إنشاء طلب الدفع. السبب: " + e.message); 
                 }
             };
             document.getElementById('bookModal').classList.remove('hidden');
@@ -117,21 +131,10 @@
 
         function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
         
-        // الترتيب الصحيح والآمن للتشغيل فور اكتمال تحميل الصفحة
+        // تشغيل دوال العرض والتوثيق فور تحميل عناصر الصفحة بالكامل
         window.onload = () => {
             renderBooks();
-            
-            if (window.Pi) {
-                try {
-                    // تهيئة المكتبة كخطوة أولى أساسية قبل استدعاء التوثيق
-                    window.Pi.init({ version: "2.0", sandbox: true });
-                    authPiUser();
-                } catch (e) {
-                    alert("فشل في تهيئة مكتبة باي: " + e.message);
-                }
-            } else {
-                alert("خطأ: لم يتم تحميل مكتبة Pi SDK، تأكد من اتصال الإنترنت.");
-            }
+            authPiUser();
         };
     </script>
 </body>
