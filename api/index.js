@@ -4,15 +4,15 @@ const app = express();
 
 app.use(express.json());
 
-// جلب المفتاح السري الخاص بتطبيقك من إعدادات Vercel بأمان
+// جلب المفتاح السري بأمان من إعدادات البيئة في Vercel
 const PI_API_KEY = process.env.PI_API_KEY;
 
-// 1. مسار الموافقة على الدفع (Server Approval)
+// المسار الأول: الموافقة على الدفع (Approval)
 app.post('/api/approve', async (req, res) => {
     const { paymentId } = req.body;
+    if (!paymentId) return res.status(400).json({ error: "Missing paymentId" });
 
     try {
-        // الاتصال بسيرفرات باي نتورك للموافقة على المعاملة
         const response = await axios.post(
             `https://api.minepi.com/v2/payments/${paymentId}/approve`,
             {},
@@ -23,21 +23,19 @@ app.post('/api/approve', async (req, res) => {
                 }
             }
         );
-        
-        // إرجاع رد النجاح للمتصفح ليقوم بخصم العملة من المستخدم
         return res.status(200).json(response.data);
     } catch (error) {
-        console.error("خطأ في مرحلة الموافقة:", error.response ? error.response.data : error.message);
+        console.error("خطأ سيرفر باي في مرحلة الموافقة:", error.response ? error.response.data : error.message);
         return res.status(500).json({ error: "فشلت عملية موافقة السيرفر الحقيقي" });
     }
 });
 
-// 2. مسار التأكيد النهائي للمعاملة (Server Completion)
+// المسار الثاني: التأكيد النهائي للمعاملة (Completion)
 app.post('/api/complete', async (req, res) => {
     const { paymentId, txid } = req.body;
+    if (!paymentId || !txid) return res.status(400).json({ error: "Missing parameters" });
 
     try {
-        // إرسال طلب إكمال المعاملة وتوثيق الـ txid الخاص بالبلوكشين
         const response = await axios.post(
             `https://api.minepi.com/v2/payments/${paymentId}/complete`,
             { txid: txid },
@@ -48,11 +46,9 @@ app.post('/api/complete', async (req, res) => {
                 }
             }
         );
-
-        // هنا يمكنك إضافة كود في السيرفر لتفعيل الكتاب للمستخدم أو حفظ المعاملة في قاعدة بياناتك
         return res.status(200).json(response.data);
     } catch (error) {
-        console.error("خطأ في مرحلة التأكيد النهائي:", error.response ? error.response.data : error.message);
+        console.error("خطأ سيرفر باي في مرحلة التأكيد:", error.response ? error.response.data : error.message);
         return res.status(500).json({ error: "فشلت عملية تأكيد السيرفر الحقيقي" });
     }
 });
