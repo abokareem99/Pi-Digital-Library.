@@ -4,14 +4,11 @@ const app = express();
 
 app.use(express.json());
 
-// جلب المفتاح السري بأمان من إعدادات البيئة في Vercel
 const PI_API_KEY = process.env.PI_API_KEY;
 
-// المسار الأول: الموافقة على الدفع (Approval)
+// مسار الموافقة
 app.post('/api/approve', async (req, res) => {
     const { paymentId } = req.body;
-    if (!paymentId) return res.status(400).json({ error: "Missing paymentId" });
-
     try {
         const response = await axios.post(
             `https://api.minepi.com/v2/payments/${paymentId}/approve`,
@@ -25,20 +22,18 @@ app.post('/api/approve', async (req, res) => {
         );
         return res.status(200).json(response.data);
     } catch (error) {
-        console.error("خطأ سيرفر باي في مرحلة الموافقة:", error.response ? error.response.data : error.message);
-        return res.status(500).json({ error: "فشلت عملية موافقة السيرفر الحقيقي" });
+        console.error("خطأ في Approve:", error.response ? error.response.data : error.message);
+        return res.status(500).json({ error: "فشل سيرفر التطبيق في الموافقة" });
     }
 });
 
-// المسار الثاني: التأكيد النهائي للمعاملة (Completion)
+// مسار الإكمال
 app.post('/api/complete', async (req, res) => {
     const { paymentId, txid } = req.body;
-    if (!paymentId || !txid) return res.status(400).json({ error: "Missing parameters" });
-
     try {
         const response = await axios.post(
             `https://api.minepi.com/v2/payments/${paymentId}/complete`,
-            { txid: txid },
+            { txid },
             {
                 headers: {
                     'Authorization': `Key ${PI_API_KEY}`,
@@ -48,9 +43,10 @@ app.post('/api/complete', async (req, res) => {
         );
         return res.status(200).json(response.data);
     } catch (error) {
-        console.error("خطأ سيرفر باي في مرحلة التأكيد:", error.response ? error.response.data : error.message);
-        return res.status(500).json({ error: "فشلت عملية تأكيد السيرفر الحقيقي" });
+        console.error("خطأ في Complete:", error.response ? error.response.data : error.message);
+        return res.status(500).json({ error: "فشل سيرفر التطبيق في التأكيد" });
     }
 });
 
+// تصدير التطبيق ليعمل كـ Serverless Function على Vercel
 module.exports = app;
