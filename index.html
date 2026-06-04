@@ -29,6 +29,25 @@
         const Pi = window.Pi;
         Pi.init({ version: "2.0", sandbox: true });
 
+        // دالة لتوثيق دخول المستخدم تلقائياً عند فتح التطبيق
+        async function authPiUser() {
+            try {
+                const scopes = ['username', 'payments'];
+                function onIncompletePaymentFound(payment) {
+                    // إذا وُجدت معاملة معلقة، يتم إرسالها لملف الـ complete لإغلاقها
+                    fetch('/api/complete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
+                    });
+                }
+                await Pi.authenticate(scopes, onIncompletePaymentFound);
+                console.log("تم تسجيل دخول المستخدم بنجاح في شبكة باي");
+            } catch (err) {
+                console.error("خطأ في التوثيق:", err);
+            }
+        }
+
         const books = [
             { id: 1, title: "الرحيق المختوم", author: "صفي الرحمن", icon: "🕌" },
             { id: 2, title: "مقدمة ابن خلدون", author: "ابن خلدون", icon: "🏛️" },
@@ -64,20 +83,32 @@
                         memo: "شراء كتاب: " + book.title,
                         metadata: { bookId: id }
                     }, {
-                        // هنا يتم توجيه الطلبات إلى الـ API الخاص بـ Vercel (خادمك)
+                        // تعديل: إضافة return وإرجاع الاستجابة للسيرفر الرئيسي لشبكة باي
                         onReadyForServerApproval: (paymentId) => {
-                            fetch('/api/approve', {
+                            return fetch('/api/approve', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
+                            }).then(res => {
+                                if (!res.ok) throw new Error("فشلت موافقة السيرفر");
+                                return res.json();
                             });
                         },
+                        // تعديل: إضافة return للتأكيد النهائي وإظهار التنبيه للمستخدم بعد النجاح
                         onReadyForServerCompletion: (paymentId, txid) => {
-                            fetch('/api/complete', {
+                            return fetch('/api/complete', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId, txid })
-                            }).then(() => alert("تمت العملية بنجاح!"));
+                            }).then(res => {
+                                if (res.ok) {
+                                    alert("تمت العملية بنجاح! تم تأكيد الدفع وشراء الكتاب.");
+                                    closeModal();
+                                } else {
+                                    alert("فشل تأكيد عملية الدفع النهائية.");
+                                }
+                                return res.json();
+                            });
                         },
                         onCancel: () => alert("تم إلغاء الدفع"),
                         onError: (e) => alert("خطأ: " + e.message)
@@ -88,7 +119,12 @@
         }
 
         function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
-        window.onload = renderBooks;
+        
+        // تشغيل عرض الكتب وتوثيق الحساب فور تحميل الصفحة
+        window.onload = () => {
+            renderBooks();
+            authPiUser();
+        };
     </script>
 </body>
 </html>
