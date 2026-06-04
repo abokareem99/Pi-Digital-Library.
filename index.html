@@ -12,7 +12,13 @@
     </style>
 </head>
 <body class="p-4">
-    <h1 class="text-2xl font-bold text-center mb-8">مكتبة باي الرقمية</h1>
+    <h1 class="text-2xl font-bold text-center mb-4">مكتبة باي الرقمية</h1>
+    
+    <!-- شريط حالة التوثيق الذكي للكشف عن الاتصال فوراً -->
+    <div id="authStatus" class="text-center p-3 mb-6 rounded-lg text-sm bg-yellow-900 text-yellow-300 font-bold animate-pulse">
+        جاري الاتصال بشبكة باي وتأكيد الصلاحيات...
+    </div>
+
     <div id="booksGrid" class="grid grid-cols-2 gap-4"></div>
 
     <div id="bookModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center p-4 z-50">
@@ -27,33 +33,43 @@
     <script>
         const APP_ID = "digital-library-fc6a5a2b23afc76b";
         
-        // إعادة تهيئة المكتبة بشكل عالمي ومباشر (Global) فور تحميل الملف، وهو الوضع القياسي الصحيح
+        // تهيئة الـ SDK فوراً عند تحميل الملف
         if (window.Pi) {
             try {
                 window.Pi.init({ version: "2.0", sandbox: true });
-                console.log("تمت تهيئة Pi SDK بنجاح في الخلفية");
             } catch (e) {
                 console.error("فشلت التهيئة المبدئية:", e);
             }
         }
 
-        // دالة التوثيق وتسجيل دخول حساب المستخدم
+        // دالة التوثيق وتسجيل الدخول
         async function authPiUser() {
-            if (!window.Pi) return;
+            const statusDiv = document.getElementById('authStatus');
+            if (!window.Pi) {
+                statusDiv.innerText = "خطأ: لم يتم تحميل ملفات Pi SDK الخارجية.";
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-900 text-red-300 font-bold";
+                return;
+            }
+            
             try {
                 const scopes = ['username', 'payments'];
-                await window.Pi.authenticate(scopes, function(payment) {
-                    // معالجة المدفوعات المعلقة تلقائياً عبر السيرفر إن وُجدت لإغلاقها
+                // استدعاء التوثيق الرسمي
+                const authResult = await window.Pi.authenticate(scopes, function(payment) {
+                    // معالجة المدفوعات المعلقة إن وجدت
                     fetch('/api/complete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
                     });
                 });
-                console.log("تم التوثيق والاتصال بالشبكة بنجاح");
+                
+                // إذا نجح التوثيق يتغير الشريط للون الأخضر ويظهر اسم المستخدم
+                statusDiv.innerText = `🟢 متصل بنجاح كـ مطور: ${authResult.user.username}`;
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
             } catch (err) {
-                // هذا التنبيه سيختفي تماماً بمجرد تشغيل الرابط عبر ملقم sandbox.minepi.com المعتمد
-                alert("تنبيه التوثيق: " + (err.message || err) + "\n\n💡 الحل: يجب فتح الموقع من داخل الرابط الإجباري: sandbox.minepi.com");
+                // إذا فشل يظهر السبب مباشرة في الشريط الأحمر
+                statusDiv.innerText = `🔴 فشل منح صلاحية الدفع. السبب: ${err.message || err}\n(تأكد من فتح الرابط المباشر ومطابقته في develop.pi)`;
+                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
             }
         }
 
@@ -111,10 +127,10 @@
                                 body: JSON.stringify({ paymentId, txid })
                             }).then(res => {
                                 if (res.ok) {
-                                    alert("تمت العملية بنجاح! تم تأكيد الدفع في السيرفر وشراء الكتاب.");
+                                    alert("تمت العملية بنجاح! تم تأكيد الدفع.");
                                     closeModal();
                                 } else {
-                                    alert("فشل السيرفر في التأكيد النهائي للمعاملة.");
+                                    alert("فشل السيرفر في التأكيد النهائي المعاملة.");
                                 }
                                 return res.json();
                             });
@@ -123,7 +139,7 @@
                         onError: (e) => alert("خطأ من الـ Pi SDK: " + e.message)
                     });
                 } catch (e) { 
-                    alert("فشل إنشاء طلب الدفع. السبب: " + e.message); 
+                    alert("عذراً، لا يمكن الدفع حالياً: " + e.message); 
                 }
             };
             document.getElementById('bookModal').classList.remove('hidden');
@@ -131,7 +147,6 @@
 
         function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
         
-        // تشغيل دوال العرض والتوثيق فور تحميل عناصر الصفحة بالكامل
         window.onload = () => {
             renderBooks();
             authPiUser();
