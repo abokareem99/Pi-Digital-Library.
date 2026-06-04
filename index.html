@@ -1,232 +1,44 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتبة باي الرقمية</title>
-    <!-- مكتبة Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- إعدادات الألوان الخاصة بـ Pi Network -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        piGold: '#f4b814',
-                        piDark: '#0f172a',
-                        piCard: '#1e293b',
-                        piHover: '#334155'
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- خط عربي مناسب للقراءة -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-        body { 
-            font-family: 'Tajawal', sans-serif; 
-            background-color: #0f172a;
-            color: #f8fafc;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
+    <!-- استيراد مكتبة Pi SDK -->
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 </head>
-<body class="antialiased">
+<body>
+    <h1>مكتبة باي الرقمية</h1>
+    <button id="pay-button">شراء الكتاب بـ 1 Pi</button>
 
-    <!-- شريط التنقل (Header) -->
-    <header class="border-b border-gray-800 bg-piDark sticky top-0 z-40">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-piGold rounded-full flex items-center justify-center text-piDark font-bold text-xl">Pi</div>
-                <h1 class="text-2xl font-bold tracking-wide">مكتبة <span class="text-piGold">باي</span></h1>
-            </div>
-            <div class="w-1/3">
-                <input type="text" id="searchInput" placeholder="ابحث عن كتاب، مؤلف، أو مجال..." class="w-full bg-piCard border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-piGold transition-colors">
-            </div>
-        </div>
-    </header>
-
-    <!-- أزرار التصنيفات -->
-    <nav class="container mx-auto px-4 py-6">
-        <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2" id="categoryButtons">
-            <!-- سيتم توليد الأزرار عبر JavaScript -->
-        </div>
-    </nav>
-
-    <!-- شبكة الكتب (Grid) -->
-    <main class="container mx-auto px-4 pb-12">
-        <div id="booksGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- سيتم توليد الكتب هنا -->
-        </div>
-    </main>
-
-    <!-- نافذة الشراء (Modal) -->
-    <div id="bookModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-piCard rounded-2xl w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
-            <div class="relative">
-                <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center">✕</button>
-                <div class="p-8 flex flex-col md:flex-row gap-6">
-                    <div class="w-full md:w-1/3">
-                        <div id="modalCover" class="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center text-5xl mb-4 shadow-lg"></div>
-                    </div>
-                    <div class="w-full md:w-2/3 flex flex-col justify-between">
-                        <div>
-                            <span id="modalCategory" class="text-piGold text-sm font-bold tracking-wider mb-2 block"></span>
-                            <h2 id="modalTitle" class="text-3xl font-bold mb-2"></h2>
-                            <p id="modalAuthor" class="text-gray-400 mb-4"></p>
-                            <p id="modalDescription" class="text-gray-300 text-sm leading-relaxed mb-6"></p>
-                        </div>
-                        <div class="bg-piDark p-4 rounded-xl border border-gray-700 flex justify-between items-center">
-                            <div>
-                                <p class="text-sm text-gray-400">السعر</p>
-                                <p class="text-2xl font-bold text-piGold" id="modalPrice"></p>
-                            </div>
-                            <button id="buyButton" class="bg-piGold hover:bg-yellow-500 text-piDark font-bold py-3 px-8 rounded-lg shadow-lg transform transition hover:-translate-y-1">
-                                شراء وتحميل
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- كود JavaScript للتشغيل -->
     <script>
-        // قاعدة بيانات الكتب الشاملة
-        const books = [
-            { id: 1, title: "الرحيق المختوم", author: "صفي الرحمن المباركفوري", category: "دينية", price: "0.5 Pi", coverIcon: "🕌", description: "بحث في السيرة النبوية على صاحبها أفضل الصلاة والسلام، يعتبر من أهم المراجع الحديثة في السيرة." },
-            { id: 2, title: "مقدمة ابن خلدون", author: "ابن خلدون", category: "ثقافية", price: "0.8 Pi", coverIcon: "🏛️", description: "الكتاب المؤسس لعلم الاجتماع الحديث، يتناول أصول التاريخ وطبيعة العمران البشري." },
-            { id: 3, title: "ثروة الأمم", author: "آدم سميث", category: "اقتصادية", price: "1.2 Pi", coverIcon: "📈", description: "الكتاب الكلاسيكي الذي أسس للاقتصاد الحديث ونظرية السوق الحر." },
-            { id: 4, title: "الخيميائي", author: "باولو كويلو", category: "روايات", price: "0.4 Pi", coverIcon: "✨", description: "رواية عالمية ملهمة تدور حول البحث عن الحلم والكنز الشخصي." },
-            { id: 5, title: "شيفرة دافنشي", author: "دان براون", category: "جاسوسية", price: "0.6 Pi", coverIcon: "🕵️", description: "رواية إثارة وغموض تجمع بين التاريخ والشفرات المعقدة في قالب بوليسي سريع الإيقاع." },
-            { id: 6, title: "تاريخ موجز للزمن", author: "ستيفن هوكينغ", category: "علمية", price: "1.0 Pi", coverIcon: "🔬", description: "شرح مبسط لأعقد نظريات الفيزياء الحديثة ونشأة الكون للأشخاص غير المتخصصين." },
-            { id: 7, title: "الكون", author: "كارل ساغان", category: "فضائية", price: "0.9 Pi", coverIcon: "🌌", description: "رحلة مذهلة في أعماق الفضاء، تستكشف النجوم والمجرات ومكانة الإنسان في هذا الكون الشاسع." },
-            { id: 8, title: "عشرون ألف فرسخ تحت البحر", author: "جول فيرن", category: "بحرية", price: "0.5 Pi", coverIcon: "🌊", description: "رواية خيال علمي كلاسيكية تأخذك في رحلة مشوقة في أعماق المحيطات مع الغواصة نوتيلوس." },
-            { id: 9, title: "جدد حياتك", author: "محمد الغزالي", category: "دينية", price: "0.3 Pi", coverIcon: "📖", description: "مقارنة بين تعاليم الإسلام ونظريات علم النفس الحديثة في التعامل مع القلق وبناء الذات." },
-            { id: 10, title: "الاقتصاد العجيب", author: "ستيفن ليفيت", category: "اقتصادية", price: "0.7 Pi", coverIcon: "📊", description: "يستكشف الجانب الخفي لكل شيء، وكيف تؤثر الحوافز الاقتصادية على سلوكنا اليومي." }
-        ];
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0" });
 
-        // التصنيفات المتاحة
-        const categories = ["الكل", "دينية", "ثقافية", "اقتصادية", "روايات", "جاسوسية", "علمية", "فضائية", "بحرية"];
-        let currentCategory = "الكل";
-
-        // عناصر DOM
-        const booksGrid = document.getElementById('booksGrid');
-        const categoryButtons = document.getElementById('categoryButtons');
-        const searchInput = document.getElementById('searchInput');
-        const modal = document.getElementById('bookModal');
-        const modalContent = document.getElementById('modalContent');
-
-        // تهيئة التطبيق
-        function init() {
-            renderCategories();
-            renderBooks(books);
-        }
-
-        // عرض أزرار التصنيفات
-        function renderCategories() {
-            categoryButtons.innerHTML = categories.map(cat => `
-                <button onclick="filterByCategory('${cat}')" 
-                        class="px-5 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-colors border ${currentCategory === cat ? 'bg-piGold text-piDark border-piGold' : 'bg-piCard text-gray-300 border-gray-700 hover:border-piGold'}">
-                    ${cat}
-                </button>
-            `).join('');
-        }
-
-        // عرض الكتب في الشبكة
-        function renderBooks(booksToRender) {
-            if (booksToRender.length === 0) {
-                booksGrid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500">لم يتم العثور على كتب مطابقة.</div>`;
-                return;
+        document.getElementById('pay-button').addEventListener('click', async () => {
+            try {
+                const payment = await Pi.createPayment({
+                    amount: 1,
+                    memo: "شراء كتاب من مكتبة باي",
+                    metadata: { bookId: "123" }
+                }, {
+                    onReadyForServerApproval: (paymentId) => {
+                        console.log("جاهز للموافقة:", paymentId);
+                        // هنا سيتم إرسال الـ paymentId لخادمك
+                    },
+                    onReadyForServerCompletion: (paymentId, txid) => {
+                        console.log("اكتمل الدفع:", txid);
+                    },
+                    onCancel: (paymentId) => {
+                        alert("تم إلغاء عملية الدفع");
+                    },
+                    onError: (error, payment) => {
+                        alert("حدث خطأ: " + error);
+                    }
+                });
+            } catch (err) {
+                console.error("خطأ في الاتصال:", err);
             }
-
-            booksGrid.innerHTML = booksToRender.map(book => `
-                <div onclick="openModal(${book.id})" class="bg-piCard rounded-xl overflow-hidden cursor-pointer transform transition duration-300 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-gray-700 group flex flex-col h-full">
-                    <div class="h-48 bg-gray-800 flex items-center justify-center text-6xl group-hover:bg-gray-700 transition-colors">
-                        ${book.coverIcon}
-                    </div>
-                    <div class="p-5 flex-grow flex flex-col">
-                        <span class="text-xs text-piGold font-bold mb-2">${book.category}</span>
-                        <h3 class="text-lg font-bold mb-1 line-clamp-1">${book.title}</h3>
-                        <p class="text-sm text-gray-400 mb-4 line-clamp-1">${book.author}</p>
-                        <div class="mt-auto flex justify-between items-center border-t border-gray-700 pt-4">
-                            <span class="font-bold text-white">${book.price}</span>
-                            <span class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300 group-hover:bg-piGold group-hover:text-piDark transition-colors">تفاصيل</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // فلترة الكتب حسب التصنيف
-        function filterByCategory(category) {
-            currentCategory = category;
-            renderCategories();
-            filterAndSearch();
-        }
-
-        // البحث المتزامن
-        searchInput.addEventListener('input', filterAndSearch);
-
-        // دمج البحث والتصنيف
-        function filterAndSearch() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredBooks = books.filter(book => {
-                const matchesCategory = currentCategory === "الكل" || book.category === currentCategory;
-                const matchesSearch = book.title.toLowerCase().includes(searchTerm) || 
-                                      book.author.toLowerCase().includes(searchTerm) || 
-                                      book.category.toLowerCase().includes(searchTerm);
-                return matchesCategory && matchesSearch;
-            });
-            renderBooks(filteredBooks);
-        }
-
-        // فتح نافذة التفاصيل
-        function openModal(bookId) {
-            const book = books.find(b => b.id === bookId);
-            if (!book) return;
-
-            document.getElementById('modalCover').innerHTML = book.coverIcon;
-            document.getElementById('modalCategory').innerText = book.category;
-            document.getElementById('modalTitle').innerText = book.title;
-            document.getElementById('modalAuthor').innerText = `تأليف: ${book.author}`;
-            document.getElementById('modalDescription').innerText = book.description;
-            document.getElementById('modalPrice').innerText = book.price;
-
-            // تجهيز زر الشراء (سيتم ربطه بـ SDK لاحقاً)
-            document.getElementById('buyButton').onclick = function() {
-                alert(`جاري تهيئة عملية الدفع بقيمة ${book.price} عبر Pi SDK لشراء كتاب "${book.title}"...`);
-            };
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
-            }, 10);
-        }
-
-        // إغلاق نافذة التفاصيل
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        // إغلاق النافذة عند الضغط خارجها
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-
-        // تشغيل دوال التهيئة عند تحميل الصفحة
-        window.onload = init;
+        });
     </script>
 </body>
 </html>
