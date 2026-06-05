@@ -103,7 +103,9 @@
             margin-bottom: 12px;
             transition: all 0.2s;
             border: none;
+            text-decoration: none;
             font-family: inherit;
+            text-align: center;
         }
 
         .btn-download {
@@ -123,24 +125,6 @@
         .btn-view-external:hover {
             background-color: #12455a;
         }
-
-        /* حاوية المعاينة المدمجة كخيار احتياطي سفلي */
-        .preview-wrapper {
-            width: 100%;
-            max-width: 480px;
-            height: 380px;
-            margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #2c3a50;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
     </style>
 </head>
 <body>
@@ -154,21 +138,16 @@
         <div class="download-card">
             <div class="success-icon">🎉</div>
             <h2 class="card-title">جاهز للقراءة والتنزيل</h2>
-            <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك أو عرضه عبر الخيارات أدناه.</p>
+            <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك لقراءته فوراً.</p>
             
-            <button id="direct-download-btn" class="btn-action btn-download">📥 تحميل وفتح الكتاب مباشرة</button>
-            <button id="external-view-btn" class="btn-action btn-view-external">🌐 فتح المعاينة السحابية</button>
-        </div>
-
-        <div class="preview-wrapper">
-            <iframe id="backup-viewer" src="about:blank"></iframe>
+            <a id="direct-download-btn" class="btn-action btn-download" href="#">📥 تحميل وفتح الكتاب مباشرة</a>
+            <a id="external-view-btn" class="btn-action btn-view-external" target="_blank" href="#">🌐 فتح في علامة تبويب جديدة</a>
         </div>
     </div>
 
     <script>
-        // 1. التقاط مسارات الروابط الممررة من صفحة index.html
         const urlParams = new URLSearchParams(window.location.search);
-        const pdfUrl = urlParams.get('file'); 
+        let pdfUrl = urlParams.get('file'); 
         const bookName = urlParams.get('title') || 'كتاب رقمي';
 
         if(!pdfUrl) {
@@ -177,22 +156,21 @@
             document.getElementById('direct-download-btn').style.display = 'none';
             document.getElementById('external-view-btn').style.display = 'none';
         } else {
-            // تحديث اسم الكتاب في شريط العناوين
             document.getElementById('book-title-display').innerText = bookName;
 
-            // 2. إجبار المتصفح على الانتقال المباشر لملف الـ PDF وتخطي تعليق الـ Download الخاص بـ Pi
-            document.getElementById('direct-download-btn').addEventListener('click', function() {
-                window.location.href = pdfUrl;
-            });
+            // إذا كان الرابط قادم من جيت هاب، يفضل التأكد من أنه الرابط المباشر للملف
+            if (pdfUrl.includes('github.com') && !pdfUrl.includes('raw.githubusercontent.com')) {
+                pdfUrl = pdfUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
 
-            // 3. فتح المعاينة السحابية من خلال استدعاء نافذة التوجيه المباشر لـ Google Viewer
-            document.getElementById('external-view-btn').addEventListener('click', function() {
-                window.location.href = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=false`;
-            });
+            // تطبيق الروابط مباشرة على العناصر لفتحها بشكل طبيعي وآمن
+            const downloadBtn = document.getElementById('direct-download-btn');
+            const viewBtn = document.getElementById('external-view-btn');
 
-            // 4. تشغيل المعاينة المدمجة بالأسفل تلقائياً للمستخدمين الذين تدعم هواتفهم العرض الداخلي
-            const safeGoogleUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-            document.getElementById('backup-viewer').src = safeGoogleUrl;
+            downloadBtn.href = pdfUrl;
+            downloadBtn.setAttribute('download', bookName + '.pdf'); // محاولة إجبار المتصفح على التحميل
+
+            viewBtn.href = pdfUrl;
         }
     </script>
 </body>
