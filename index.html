@@ -3,78 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المكتبة الرقمية - عرض الكتاب المشتري</title>
+    <title>المكتبة الرقمية - الرئيسية</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
     <style>
         :root {
             --primary-color: #1a5f7a;
-            --bg-color: #f4f6f9;
             --dark-bg: #2f3133;
-            --text-color: #333;
+            --main-bg: #f4f6f9;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--dark-bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: var(--main-bg);
+            color: #333;
         }
 
-        /* شريط التحكم العلوي */
+        /* --- 1. تصميم واجهة المتجر الرئيسية --- */
+        .store-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-buy {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* --- 2. تصميم قارئ الـ PDF (مخفي افتراضياً) --- */
+        #pdf-viewer-section {
+            display: none; /* مخفي حتى تكتمل عملية الشراء */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-bg);
+            z-index: 9999;
+            flex-direction: column;
+        }
+
         .toolbar {
             background-color: #1f2022;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .book-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #e0e0e0;
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            background-color: var(--primary-color);
             color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
-        .btn:hover {
-            background-color: #13455a;
-        }
-
-        .btn-secondary {
-            background-color: #4a4d50;
-        }
-
-        .btn-secondary:hover {
-            background-color: #3a3d3f;
-        }
-
-        /* حاوية عرض صفحات الكتاب */
         #viewer-container {
             flex: 1;
             padding: 20px;
@@ -82,10 +74,8 @@
             flex-direction: column;
             align-items: center;
             overflow-y: auto;
-            background-color: var(--dark-bg);
         }
 
-        /* تصميم صفحة الكتاب المستخرجة كـ Canvas */
         .pdf-page-canvas {
             background: white;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -97,17 +87,18 @@
 
         /* شاشة مؤشر التحميل */
         #loading-overlay {
+            display: none; /* يظهر عند بدء معالجة الكتاب */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(47, 49, 51, 0.95);
-            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 10000;
+            color: white;
         }
 
         .spinner {
@@ -120,139 +111,125 @@
             margin-bottom: 20px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        #progress-text {
-            font-size: 18px;
-            color: #e0e0e0;
-        }
-
-        /* رسالة الخطأ */
-        #error-message {
-            display: none;
-            background-color: #cf2a2a;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            margin: 20px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <div class="store-container" id="store-front">
+        <div class="header">
+            <h1>مرحباً بك في المكتبة الرقمية</h1>
+            <p>اختر كتابك المفضل وابدأ القراءة فوراً</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <h3>كتاب: الرحيق المختوم</h3>
+            <button class="btn-buy" id="btn-pay-demo" onclick="handlePiPayment()">شراء وقراءة الكتاب الآن</button>
+        </div>
+    </div>
+
+
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <div id="progress-text">جاري تهيئة المستند...</div>
+        <div id="progress-text">جاري تهيئة الكتاب...</div>
     </div>
 
-    <div class="toolbar">
-        <div class="book-title" id="book-title-display">جاري تحميل الكتاب المشتري...</div>
-        <div class="actions">
-            <a id="download-fallback" href="#" download class="btn btn-secondary">تحميل الملف مباشر</a>
+    <div id="pdf-viewer-section">
+        <div class="toolbar">
+            <div id="book-title-display" style="font-weight: bold;">اسم الكتاب المشتري</div>
+            <div>
+                <a id="download-fallback" href="#" download class="btn-buy" style="background-color: #4a4d50; text-decoration: none; font-size: 14px;">تحميل مباشر</a>
+                <button onclick="closeViewer()" class="btn-buy" style="background-color: #cf2a2a; margin-right: 10px;">إغلاق</button>
+            </div>
         </div>
+        <div id="viewer-container">
+            </div>
     </div>
 
-    <div id="viewer-container">
-        <div id="error-message">
-            <p style="margin: 0 0 10px 0; font-weight: bold;">عذراً، تعذر تحميل الكتاب كاملاً.</p>
-            <p style="margin: 0 0 15px 0; font-size: 14px;">قد يكون ذلك بسبب انقطاع في الاتصال أو أن حجم الملف كبير جداً.</p>
-            <a id="error-download-btn" href="#" download class="btn" style="background-color: #fff; color: #cf2a2a; font-weight: bold;">تحميل الكتاب إلى جهازك</a>
-        </div>
-    </div>
 
     <script>
-        // --- إعدادات المتغيرات الأساسية ---
-        // 1. استبدل هذا الرابط بالرابط الديناميكي الفعلي الصادر من خادمك الخاص بملف الـ PDF المشتري
-        const pdfUrl = 'https://yourdomain.com/path_to/raheeq.pdf'; 
-        // 2. اسم الكتاب المستهدف عرضه في الأعلى
-        const bookName = 'كتاب الرحيق المختوم.pdf';
-
-        // ربط الواجهات البرمجية بالروابط
-        document.getElementById('book-title-display').innerText = bookName;
-        document.getElementById('download-fallback').href = pdfUrl;
-        document.getElementById('error-download-btn').href = pdfUrl;
-
-        // إعداد العمال (Worker) الخاص بـ PDF.js لمعالجة وعرض الملف بشكل متوازي دون إبطاء متصفح Pi
+        // إعداد مكتبة PDF.js في الخلفية لمعالجة أجزاء الملف
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        const container = document.getElementById('viewer-container');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const progressText = document.getElementById('progress-text');
-        const errorMessage = document.getElementById('error-message');
-
-        // خيارات فتح الملف مع دعم التقطيع والتدفق التلقائي (Chunked & Streaming)
-        const loadingTask = pdfjsLib.getDocument({
-            url: pdfUrl,
-            disableAutoFetch: false, // تفعيل الاستدعاء الذكي والتدريجي للأجزاء لمنع الاختناق بالخادم
-            disableStream: false      // تفعيل ضخ الدفق المباشر للبيانات
-        });
-
-        // تتبع حالة التحميل خطوة بخطوة لمنع ظهور صفحات فارغة أو منقوصة للمستخدم
-        loadingTask.onProgress = function(progress) {
-            if (progress.total > 0) {
-                const percent = Math.round((progress.loaded / progress.total) * 100);
-                progressText.innerText = `جاري تحميل الكتاب... ${percent}%`;
-            } else {
-                // في حال كانت الاستضافة لا تدعم إرسال Content-Length بشكل مسبق
-                const loadedMb = (progress.loaded / (1024 * 1000)).toFixed(1);
-                progressText.innerText = `جاري استلام البيانات... تم استلام ${loadedMb} ميجابايت`;
-            }
-        };
-
-        // عند قبول الـ Promise وبدء جاهزية الملف الأساسية
-        loadingTask.promise.then(function(pdf) {
-            loadingOverlay.style.display = 'none'; // إخفاء واجهة الانتظار
+        // دالة محاكاة الدفع عبر Pi SDK (قم بدمجها مع دالة الـ SDK الخاصة بك)
+        function handlePiPayment() {
+            console.log("بدء تشغيل Pi Payment SDK...");
             
-            // رندرة وبناء الصفحات بشكل متتابع (تدفقي)
-            renderAllPages(pdf);
+            // هنا تضع كود الدفع الخاص بك: Pi.createPayment({...})
+            // عند نجاح الدفع تماماً وتأكيده من السيرفر (onSuccess)، نقوم باستدعاء القارئ:
             
-        }).catch(function(error) {
-            console.error('فشل معالجة ملف الـ PDF بالكامل:', error);
-            loadingOverlay.style.display = 'none';
-            errorMessage.style.display = 'block'; // إظهار خيار التحميل المباشر الآمن
-        });
+            const purchasedBookUrl = 'https://yourdomain.com/path_to/raheeq.pdf'; // رابط الملف المشتري
+            const purchasedBookTitle = 'كتاب الرحيق المختوم';
+            
+            // تشغيل القارئ فوراً وبدء البث التدريجي
+            openBookViewer(purchasedBookUrl, purchasedBookTitle);
+        }
 
-        // دالة الرندرة التتابعية غير المتزامنة (Asynchronous Rendering) لضمان سلاسة التصفح والتمرير
-        async function renderAllPages(pdf) {
-            const numPages = pdf.numPages;
+        // دالة تشغيل واجهة القارئ وبدء تدفق الملف
+        function openBookViewer(pdfUrl, bookName) {
+            // تحديث العناوين والروابط الاحتياطية
+            document.getElementById('book-title-display').innerText = bookName;
+            document.getElementById('download-fallback').href = pdfUrl;
             
-            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-                try {
-                    const page = await pdf.getPage(pageNum);
-                    
-                    // تحجيم الأبعاد لتناسب الهواتف الذكية (معدل 1.5 يوفر جودة ممتازة ودقة عالية)
-                    const viewport = page.getViewport({ scale: 1.5 });
-                    
-                    // إنشاء عنصر الـ Canvas لكل صفحة على حدة
-                    const canvas = document.createElement('canvas');
-                    canvas.className = 'pdf-page-canvas';
-                    const context = canvas.getContext('2d');
-                    
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    
-                    // حقن الـ Canvas فوراً بالحاوية لعرض الصفحات المنجزة أولاً بأول
-                    container.appendChild(canvas);
-                    
-                    const renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-                    
-                    // رندرة وطباعة محتويات المستند الرقمية داخل الـ Canvas
-                    await page.render(renderContext).promise;
-                    
-                } catch (pageError) {
-                    console.error(`خطأ أثناء معالجة الصفحة رقم ${pageNum}:`, pageError);
-                    // في حال تلف صفحة معينة يستمر التطبيق تلقائياً بمحاولة معالجة الصفحات الباقية دون توقف
+            // إظهار شاشة القارئ ومؤشر التحميل
+            document.getElementById('pdf-viewer-section').style.display = 'flex';
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            const container = document.getElementById('viewer-container');
+            container.innerHTML = ''; // تنظيف الحاوية من أي كتب سابقة
+
+            // تشغيل تقنية الـ Streaming (التحميل التدفقي التدريجي للأجزاء)
+            const loadingTask = pdfjsLib.getDocument({
+                url: pdfUrl,
+                disableAutoFetch: false,
+                disableStream: false
+            });
+
+            // تحديث النسبة المئوية للتحميل أولاً بأول لمنع مشكلة التحميل الناقص
+            loadingTask.onProgress = function(progress) {
+                const progressText = document.getElementById('progress-text');
+                if (progress.total > 0) {
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    progressText.innerText = `جاري تحميل كتابك... ${percent}%`;
+                } else {
+                    const loadedMb = (progress.loaded / (1024 * 1000)).toFixed(1);
+                    progressText.innerText = `جاري استلام البيانات... تم استلام ${loadedMb} ميجابايت`;
                 }
-            }
+            };
+
+            // عند معالجة هيكل الملف الأولي بنجاح
+            loadingTask.promise.then(async function(pdf) {
+                document.getElementById('loading-overlay').style.display = 'none'; // إخفاء مؤشر النسبة
+                
+                // رندرة وطباعة الصفحات بالتتابع فور وصولها
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    try {
+                        const page = await pdf.getPage(pageNum);
+                        const viewport = page.getViewport({ scale: 1.5 }); // مقياس مناسب لشاشات الهواتف ومتصفح Pi
+                        
+                        const canvas = document.createElement('canvas');
+                        canvas.className = 'pdf-page-canvas';
+                        const context = canvas.getContext('2d');
+                        
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        container.appendChild(canvas);
+                        
+                        const renderContext = { canvasContext: context, viewport: viewport };
+                        await page.render(renderContext).promise;
+                    } catch (e) {
+                        console.error("خطأ في معالجة الصفحة: " + pageNum, e);
+                    }
+                }
+            }).catch(function(error) {
+                document.getElementById('loading-overlay').style.display = 'none';
+                alert("حدث خطأ أثناء الاتصال بالسيرفر لتحميل الملف بالكامل، يرجى استخدام زر التحميل المباشر.");
+            });
+        }
+
+        // دالة لإغلاق القارئ والعودة للمتجر الرئيسي
+        function closeViewer() {
+            document.getElementById('pdf-viewer-section').style.display = 'none';
         }
     </script>
 </body>
