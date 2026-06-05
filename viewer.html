@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المكتبة الرقمية - قراءة الكتاب</title>
+    <title>المكتبة الرقمية - قراءة وتنزيل الكتاب</title>
     <style>
         :root { 
             --primary-color: #00a86b; 
-            --dark-bg: #1a2436; 
+            --dark-bg: #0d1624; 
+            --card-bg: #1a2436;
         }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body, html { 
-            margin: 0; 
-            padding: 0; 
             background-color: var(--dark-bg); 
             color: #fff; 
-            height: 100%; 
-            overflow: hidden; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
         .toolbar { 
-            background-color: #0d1624; 
-            padding: 12px 20px; 
+            background-color: #09111e; 
+            padding: 15px 20px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.4); 
-            z-index: 1000; 
         }
+
         .book-title { 
             font-size: 16px; 
             font-weight: bold; 
             color: #e0e0e0; 
         }
+
         .btn-back { 
             background-color: #4a4d50; 
             color: white; 
@@ -44,82 +51,148 @@
             text-decoration: none; 
             font-size: 14px; 
             font-weight: bold; 
-            transition: background-color 0.2s;
         }
-        .btn-back:hover { 
-            background-color: #5a5d60; 
+
+        .action-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
         }
-        #secure-viewer-frame { 
-            flex: 1; 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            background: #fff; 
+
+        .download-card {
+            background-color: var(--card-bg);
+            border: 1px solid #2c3a50;
+            padding: 30px 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
-        #loading-overlay { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background-color: #0d1624; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 2000; 
+
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
         }
-        .spinner { 
-            border: 4px solid rgba(255,255,255,0.1); 
-            width: 50px; 
-            height: 50px; 
-            border-radius: 50%; 
-            border-left-color: var(--primary-color); 
-            animation: spin 1s linear infinite; 
-            margin-bottom: 20px; 
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2ecc71;
         }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
+
+        .card-text {
+            font-size: 14px;
+            color: #a0aec0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .btn-action {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-download {
+            background-color: #00a86b;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background-color: #008f5d;
+        }
+
+        .btn-view-external {
+            background-color: #1a5f7a;
+            color: white;
+        }
+
+        .btn-view-external:hover {
+            background-color: #12455a;
+        }
+
+        /* حاوية المعاينة المدمجة كخيار احتياطي سفلي */
+        .preview-wrapper {
+            width: 100%;
+            max-width: 480px;
+            height: 300px;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #2c3a50;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div id="progress-text">جاري إعداد وعرض صفحات الكتاب المشتري...</div>
-    </div>
-
     <div class="toolbar">
-        <div class="book-title" id="book-title-display">جاري التحميل...</div>
+        <div class="book-title" id="book-title-display">جاري معالجة الكتاب...</div>
         <a href="/index.html" class="btn-back">الرجوع للمتجر</a>
     </div>
 
-    <iframe id="secure-viewer-frame" src="about:blank"></iframe>
+    <div class="action-container">
+        <div class="download-card">
+            <div class="success-icon">🎉</div>
+            <h2 class="card-title">جاهز للقراءة والتنزيل</h2>
+            <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك أو عرضه.</p>
+            
+            <a href="#" id="direct-download-btn" class="btn-action btn-download">📥 تحميل الكتاب (PDF) مباشر</a>
+            <a href="#" id="external-view-btn" target="_blank" class="btn-action btn-view-external">🌐 فتح المعاينة في نافذة خارجية</a>
+        </div>
+
+        <div class="preview-wrapper">
+            <iframe id="backup-viewer" src="about:blank"></iframe>
+        </div>
+    </div>
 
     <script>
-        // التقاط البارامترات المرسلة من صفحة الدفع والتحقق منها
+        // 1. التقاط مسارات الروابط الممررة من صفحة index.html
         const urlParams = new URLSearchParams(window.location.search);
         const pdfUrl = urlParams.get('file'); 
         const bookName = urlParams.get('title') || 'كتاب رقمي';
 
         if(!pdfUrl) {
-            document.getElementById('progress-text').innerText = "خطأ: لم يتم العثور على رابط الكتاب، يرجى العودة للمتجر.";
-            document.getElementById('progress-text').style.color = "#e74c3c";
+            document.getElementById('info-text').innerText = "خطأ: لم يتم العثور على رابط الكتاب، يرجى العودة للمتجر والشراء مجدداً.";
+            document.getElementById('info-text').style.color = "#e74c3c";
+            document.getElementById('direct-download-btn').style.display = 'none';
+            document.getElementById('external-view-btn').style.display = 'none';
         } else {
+            // تحديث اسم الكتاب في شريط العناوين
             document.getElementById('book-title-display').innerText = bookName;
-            
-            // استخدام محرك معالجة الوثائق السحابي لتفادي قيود CORS وسحب الملف بسلاسة من Archive
-            const safeGoogleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-            
-            const iframe = document.getElementById('secure-viewer-frame');
-            iframe.src = safeGoogleViewerUrl;
 
-            // إخفاء واجهة الانتظار بمجرد اكتمال تجميع البيانات داخل المستعرض
-            iframe.onload = function() {
-                document.getElementById('loading-overlay').style.display = 'none';
-            };
+            // 2. تفعيل رابط التحميل المباشر من سيرفر الأرشيف
+            const downloadBtn = document.getElementById('direct-download-btn');
+            downloadBtn.href = pdfUrl;
+            // إجبار المتصفح على محاولة تنزيل الملف بدلاً من فتحه
+            downloadBtn.setAttribute('download', `${bookName}.pdf`);
+
+            // 3. تفعيل رابط المعاينة الخارجية النظيف
+            const externalBtn = document.getElementById('external-view-btn');
+            externalBtn.href = pdfUrl;
+
+            // 4. تشغيل المعاينة المدمجة بالأسفل عبر ممر جوجل المعدل لعلها تستجيب
+            const safeGoogleUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+            document.getElementById('backup-viewer').src = safeGoogleUrl;
         }
     </script>
 </body>
