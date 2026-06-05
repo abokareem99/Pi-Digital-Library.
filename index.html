@@ -37,7 +37,6 @@
             color: #ffffff;
         }
 
-        /* شريط حالة الاتصال */
         .status-bar {
             background-color: #1a2436;
             border: 1px solid #2c3a50;
@@ -56,7 +55,6 @@
             cursor: pointer;
         }
 
-        /* حالة النجاح الأخضر المأخوذة من صورتك الأصلية */
         .status-bar.connected {
             background-color: #063116;
             border: 1px solid #0b5025;
@@ -64,7 +62,6 @@
             cursor: default;
         }
 
-        /* حالة الفشل باللون الأحمر */
         .status-bar.failed {
             background-color: #3c1e1e;
             border: 1px solid #632525;
@@ -129,7 +126,6 @@
             line-height: 1.4;
         }
 
-        /* نافذة نجاح العملية */
         .modal-overlay {
             display: none; 
             position: fixed;
@@ -212,57 +208,7 @@
             <span id="status-text">جاري فحص الاتصال بالحساب...</span>
         </div>
 
-        <div class="books-grid">
-            <div class="book-card" onclick="startPurchase('raheeq', 1.0, 'كتاب الرحيق المختوم')">
-                <span class="book-icon">🕌</span>
-                <span class="book-name">الرحيق المختوم</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('khaldoun', 1.0, 'مقدمة ابن خلدون')">
-                <span class="book-icon">🏛️</span>
-                <span class="book-name">مقدمة ابن خلدون</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('nations', 1.0, 'ثروة الأمم')">
-                <span class="book-icon">📈</span>
-                <span class="book-name">ثروة الأمم</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('alchemist', 1.0, 'الخيميائي')">
-                <span class="book-icon">✨</span>
-                <span class="book-name">الخيميائي</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('davinci', 1.0, 'شيفرة دافنشي')">
-                <span class="book-icon">🕵️</span>
-                <span class="book-name">شيفرة دافنشي</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('time', 1.0, 'تاريخ موجز للزمن')">
-                <span class="book-icon">🔬</span>
-                <span class="book-name">تاريخ موجز للزمن</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('universe', 1.0, 'الكون')">
-                <span class="book-icon">🌌</span>
-                <span class="book-name">الكون</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('leagues', 1.0, 'عشرون ألف فرسخ')">
-                <span class="book-icon">🌊</span>
-                <span class="book-name">عشرون ألف فرسخ</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('life', 1.0, 'جدد حياتك')">
-                <span class="book-icon">📖</span>
-                <span class="book-name">جدد حياتك</span>
-            </div>
-
-            <div class="book-card" onclick="startPurchase('economy', 1.0, 'الاقتصاد العجيب')">
-                <span class="book-icon">📊</span>
-                <span class="book-name">الاقتصاد العجيب</span>
-            </div>
-        </div>
+        <div class="books-grid" id="books-container"></div>
     </div>
 
     <div class="modal-overlay" id="success-modal">
@@ -270,27 +216,46 @@
             <div class="success-circle">✓</div>
             <h3 class="modal-title">نجاح العملية</h3>
             <p class="modal-text">🎉 تمت العملية بنجاح تام!<br>تم تأكيد وشراء الكتاب بنجاح عبر شبكة باي.</p>
-            <button class="btn-success" id="btn-read-now">ممتاز</button>
+            <button class="btn-success" id="btn-read-now">قراءة الكتاب الآن</button>
         </div>
     </div>
 
     <script>
         const Pi = window.Pi;
         let isUserAuthenticated = false;
-        let currentPuchasedUrl = "";
+        let currentPurchasedUrl = "";
         let currentPurchasedTitle = "";
+        let digitalBooks = []; 
 
-        // تهيئة الـ SDK
         try {
             Pi.init({ version: "2.0", sandbox: true });
         } catch(e) {
             console.error("فشلت التهيئة المبدئية:", e);
         }
 
-        // دالة معالجة العمليات المعلقة وتصفيتها من السيرفر لمنع التعليق (مربوطة بالمسار المحدث /api/complete)
+        // دالة جلب الكتب ديناميكياً من ملفك المنفصل books.json
+        async function fetchLibraryBooks() {
+            try {
+                const response = await fetch('./books.json');
+                digitalBooks = await response.json();
+                
+                const container = document.getElementById('books-container');
+                container.innerHTML = ''; 
+
+                digitalBooks.forEach(book => {
+                    container.innerHTML += `
+                        <div class="book-card" onclick="startPurchase(${book.id}, ${book.amount}, '${book.title}')">
+                            <span class="book-icon">${book.icon}</span>
+                            <span class="book-name">${book.title}</span>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error("فشل قراءة ملف books.json المرفق:", err);
+            }
+        }
+
         function onIncompletePaymentFound(payment) {
-            console.log("تم كشف عملية معلقة قديمة، جاري تصفيتها وتسجيلها بالسيرفر...");
-            
             return fetch('/api/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -303,7 +268,6 @@
             .catch(err => console.error("فشل إغلاق المعاملة المعلقة:", err));
         }
 
-        // دالة تسجيل الدخول والربط
         function authenticateUser() {
             if (isUserAuthenticated) return;
 
@@ -316,6 +280,7 @@
                 isUserAuthenticated = true;
                 statusBar.className = "status-bar connected"; 
                 document.getElementById('status-text').innerText = "متصل بنجاح: " + auth.user.username;
+                fetchLibraryBooks(); // بناء شبكة الكتب فور الاتصال الناجح
             })
             .catch(function(error) {
                 console.error("خطأ الاتصال الخارجي:", error);
@@ -328,7 +293,6 @@
             setTimeout(authenticateUser, 1000);
         };
 
-        // دالة الدفع والشراء الأساسية
         function startPurchase(bookId, amount, bookTitle) {
             if (!isUserAuthenticated) {
                 alert("يرجى النقر على شريط الحالة العلوي للاتصال بشبكة Pi أولاً.");
@@ -342,7 +306,6 @@
                 memo: "شراء وتصفح " + bookTitle,
                 metadata: { bookId: bookId }
             }, {
-                // تصفح السيرفر للموافقة - المسار المحدث المطابق لكود خادمك تماماً
                 onReadyForServerApproval: function(paymentId) {
                     fetch('/api/approve', {
                         method: 'POST',
@@ -350,7 +313,6 @@
                         body: JSON.stringify({ paymentId: paymentId })
                     });
                 },
-                // إغلاق المعاملة نهائياً وتسجيل الخصم - المسار المحدث المطابق لكود خادمك تماماً
                 onReadyForServerCompletion: function(paymentId, txid) {
                     fetch('/api/complete', {
                         method: 'POST',
@@ -361,12 +323,15 @@
                     .then(data => {
                         document.getElementById('status-text').innerText = "متصل بنجاح";
                         
-                        const baseDomain = window.location.origin;
-                        currentPuchasedUrl = baseDomain + "/api_eq_al_makhtoom/" + bookId + ".pdf"; 
-                        currentPurchasedTitle = bookTitle;
-
-                        // فتح نافذة نجاح الشراء الخضراء والجميلة
-                        document.getElementById('success-modal').style.display = 'flex';
+                        // استخراج رابط الكتاب الحقيقي من ملف books.json المخزن برمجياً
+                        const purchasedBook = digitalBooks.find(b => b.id === bookId);
+                        if (purchasedBook) {
+                            currentPurchasedUrl = purchasedBook.download_url;
+                            currentPurchasedTitle = bookTitle;
+                            document.getElementById('success-modal').style.display = 'flex';
+                        } else {
+                            alert("خطأ: لم يتم العثور على رابط الكتاب في قاعدة البيانات.");
+                        }
                     });
                 },
                 onCancel: function(paymentId) {
@@ -379,10 +344,10 @@
             });
         }
 
-        // الانتقال لملف المستعرض المنفصل فور الضغط على ممتاز
         document.getElementById('btn-read-now').addEventListener('click', function() {
-            if(currentPuchasedUrl) {
-                window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPuchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
+            if(currentPurchasedUrl) {
+                // نقل التوجيه لصفحة العرض مع تمرير الرابط الخارجي النظيف
+                window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPurchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
             }
         });
     </script>
