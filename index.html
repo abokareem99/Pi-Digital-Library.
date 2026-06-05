@@ -7,25 +7,71 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #0b0f19; color: #f1f5f9; }
+        .success-animation { animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleUp { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="p-4">
-    <h1 class="text-2xl font-bold text-center mb-4">مكتبة باي الرقمية</h1>
+<body class="min-h-screen bg-gradient-to-b from-[#0b0f19] to-[#1e1b4b] p-4 pb-12">
     
-    <div id="authStatus" class="text-center p-3 mb-6 rounded-lg text-sm bg-yellow-900 text-yellow-300 font-bold animate-pulse">
-        جاري تهيئة النظام والاتصال بشركة باي...
+    <!-- الهيدر الاحترافي -->
+    <header class="max-w-2xl mx-auto text-center my-6">
+        <div class="inline-block bg-yellow-500/10 text-yellow-500 p-3 rounded-full mb-2 border border-yellow-500/20">
+            📚
+        </div>
+        <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-200">
+            مكتبة باي الرقمية
+        </h1>
+        <p class="text-xs text-gray-400 mt-1">تصفح واشترِ كتبك المفضلة بعملة Pi بأمان</p>
+    </header>
+    
+    <!-- حالة الاتصال -->
+    <div class="max-w-xl mx-auto mb-8">
+        <div id="authStatus" class="text-center p-3.5 rounded-xl text-sm bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-medium shadow-lg shadow-black/30 animate-pulse">
+            🔄 جاري تهيئة النظام والاتصال بمحفظة باي...
+        </div>
     </div>
 
-    <div id="booksGrid" class="grid grid-cols-2 gap-4"></div>
+    <!-- شبكة الكتب المتطورة -->
+    <main class="max-w-2xl mx-auto">
+        <div id="booksGrid" class="grid grid-cols-2 sm:grid-cols-2 gap-4"></div>
+    </main>
 
-    <div id="bookModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 p-6 rounded-xl w-full max-w-sm text-center">
-            <h2 id="modalTitle" class="text-xl font-bold mb-2"></h2>
-            <p id="modalAuthor" class="text-gray-400 mb-6"></p>
-            <button id="buyButton" class="w-full bg-yellow-500 text-black font-bold py-3 rounded-lg mb-2">شراء وتحميل</button>
-            <button onclick="closeModal()" class="w-full text-gray-400 py-2">إلغاء</button>
+    <!-- نافذة تفاصيل الكتاب -->
+    <div id="bookModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+            <div id="modalIcon" class="text-5xl my-4"></div>
+            <h2 id="modalTitle" class="text-xl font-bold text-white mb-1"></h2>
+            <p id="modalAuthor" class="text-sm text-gray-400 mb-6"></p>
+            
+            <div class="bg-slate-950 p-3 rounded-xl mb-6 border border-slate-800/80 flex justify-between items-center px-4">
+                <span class="text-xs text-gray-400">السعر الثابت:</span>
+                <span class="font-bold text-yellow-400 text-lg">0.1 Pi</span>
+            </div>
+
+            <button id="buyButton" class="w-full bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 font-bold py-3.5 rounded-xl mb-2 hover:from-yellow-400 hover:to-amber-400 transition shadow-lg shadow-yellow-500/10 active:scale-95 duration-150">
+                شراء وتحميل فوراً
+            </button>
+            <button onclick="closeModal()" class="w-full text-gray-400 text-sm py-2 hover:text-white transition">إلغاء الأمر</button>
+        </div>
+    </div>
+
+    <!-- نافذة النجاح المربعة الاحترافية بديلة الـ Alert -->
+    <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-950 border border-emerald-500/30 p-6 rounded-2xl w-full max-w-xs text-center shadow-2xl success-animation">
+            <!-- علامة الصح الأخضر المطور -->
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500 mb-4 shadow-lg shadow-emerald-500/10">
+                <svg class="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">نجاح العملية</h3>
+            <p class="text-sm text-gray-300 mb-6 leading-relaxed">🎉 تمت العملية بنجاح تام!<br>تم تأخير وشراء الكتاب بنجاح عبر شبكة باي.</p>
+            <button onclick="closeSuccessModal()" class="w-full bg-emerald-600 text-white font-medium py-2.5 rounded-xl hover:bg-emerald-500 transition shadow-lg shadow-emerald-600/20">
+                ممتاز
+            </button>
         </div>
     </div>
 
@@ -47,32 +93,33 @@
             const grid = document.getElementById('booksGrid');
             if (grid) {
                 grid.innerHTML = books.map(book => `
-                    <div onclick="openModal(${book.id})" class="bg-slate-800 p-4 rounded-lg text-center cursor-pointer hover:bg-slate-700 transition">
-                        <div class="text-4xl mb-2">${book.icon}</div>
-                        <p class="font-bold text-sm">${book.title}</p>
+                    <div onclick="openModal(${book.id})" class="bg-slate-900/60 backdrop-blur-sm border border-slate-800 p-5 rounded-2xl text-center cursor-pointer hover:border-yellow-500/40 hover:bg-slate-800/40 transition-all duration-300 group shadow-md shadow-black/10">
+                        <div class="text-4xl mb-3 group-hover:scale-110 transition duration-300">${book.icon}</div>
+                        <p class="font-bold text-sm text-slate-200 group-hover:text-yellow-400 transition mb-1 truncate">${book.title}</p>
+                        <p class="text-xs text-slate-500 truncate">${book.author}</p>
                     </div>
                 `).join('');
             }
         }
 
         const onIncompletePaymentFound = (payment) => {
-            console.log("تم العثور على دفعة معلقة، جاري إغلاقها:", payment);
+            console.log("تم العثور على دفعة معلقة، جاري معالجتها:", payment);
             return fetch('/api/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
             }).then(res => {
-                if (!res.ok) throw new Error("فشل في إغلاق الدفعة المعلقة في السيرفر");
+                if (!res.ok) throw new Error("فشل إغلاق المعلقة");
             });
         };
 
         async function startPiIntegration() {
             const statusDiv = document.getElementById('authStatus');
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 600));
 
             if (!window.Pi) {
-                statusDiv.innerText = "🔴 خطأ: لم يتم تحميل ملفات Pi SDK.";
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
+                statusDiv.innerText = "🔴 خطأ: لم يتم العثور على Pi SDK.";
+                statusDiv.className = "text-center p-3.5 rounded-xl text-sm bg-red-950/40 text-red-400 border border-red-900/50 font-bold shadow-lg";
                 return;
             }
 
@@ -80,11 +127,11 @@
                 await window.Pi.init({ version: "2.0", sandbox: true });
                 const auth = await window.Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
                 
-                statusDiv.innerText = `🟢 متصل بنجاح: ${auth.user.username}`;
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-green-950 text-green-400 font-bold";
+                statusDiv.innerText = `🟢 متصل بالشبكة: ${auth.user.username}`;
+                statusDiv.className = "text-center p-3.5 rounded-xl text-sm bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 font-bold shadow-lg shadow-black/30";
             } catch (error) {
-                statusDiv.innerText = `🔴 خطأ في الاتصال بالنظام: ${error.message || error}`;
-                statusDiv.className = "text-center p-3 mb-6 rounded-lg text-sm bg-red-950 text-red-400 font-bold";
+                statusDiv.innerText = `🔴 فشل الربط: ${error.message || error}`;
+                statusDiv.className = "text-center p-3.5 rounded-xl text-sm bg-red-950/40 text-red-400 border border-red-900/50 font-bold shadow-lg";
             }
         }
 
@@ -92,6 +139,7 @@
             const book = books.find(b => b.id === id);
             document.getElementById('modalTitle').innerText = book.title;
             document.getElementById('modalAuthor').innerText = book.author;
+            document.getElementById('modalIcon').innerText = book.icon;
             
             document.getElementById('buyButton').onclick = async () => {
                 try {
@@ -106,10 +154,7 @@
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
                             }).then(async res => {
-                                if (!res.ok) {
-                                    const errText = await res.text();
-                                    throw new Error("فشل الموافقة من السيرفر: " + errText);
-                                }
+                                if (!res.ok) throw new Error("فشل الموافقة");
                             });
                         },
                         onReadyForServerCompletion: (paymentId, txid) => {
@@ -118,25 +163,25 @@
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId, txid })
                             }).then(async res => {
-                                if (!res.ok) {
-                                    const errText = await res.text();
-                                    throw new Error("فشل الإكمال من السيرفر: " + errText);
-                                }
-                                alert("🎉 تمت العملية بنجاح تام! تم شراء الكتاب بنجاح.");
+                                if (!res.ok) throw new Error("فشل التأكيد");
                                 closeModal();
+                                openSuccessModal(); // استدعاء المربع الاحترافي بدلاً من الـ alert
                             });
                         },
-                        onCancel: () => alert("تم إلغاء عملية الدفع"),
-                        onError: (error) => alert("خطأ من شبكة باي: " + error.message)
+                        onCancel: () => {},
+                        onError: (error) => console.error(error)
                     });
                 } catch (e) { 
-                    alert("عذراً، لا يمكن إنشاء الدفع: " + e.message); 
+                    console.error(e);
                 }
             };
             document.getElementById('bookModal').classList.remove('hidden');
         }
 
         function closeModal() { document.getElementById('bookModal').classList.add('hidden'); }
+        
+        function openSuccessModal() { document.getElementById('successModal').classList.remove('hidden'); }
+        function  closeSuccessModal() { document.getElementById('successModal').classList.add('hidden'); }
         
         window.onload = () => {
             renderBooks();
