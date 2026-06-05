@@ -35,7 +35,7 @@
             { id: 2, title: "مقدمة ابن خلدون", author: "ابن خلدون", icon: "🏛️" },
             { id: 3, title: "ثروة الأمم", author: "آدم سميث", icon: "📈" },
             { id: 4, title: "الخيميائي", author: "باولو كويلو", icon: "✨" },
-            { id: 5, title: "شيفرة dafnshi", author: "دان براون", icon: "🕵️" },
+            { id: 5, title: "شيفرة دافنشي", author: "دان براون", icon: "🕵️" },
             { id: 6, title: "تاريخ موجز للزمن", author: "ستيفن هوكينغ", icon: "🔬" },
             { id: 7, title: "الكون", author: "كارل ساغان", icon: "🌌" },
             { id: 8, title: "عشرون ألف فرسخ", author: "جول فيرن", icon: "🌊" },
@@ -55,13 +55,14 @@
             }
         }
 
-        // دالة التعامل مع المدفوعات المعلقة لإغلاقها ومنع تعليق المهلة
         const onIncompletePaymentFound = (payment) => {
             console.log("تم العثور على دفعة معلقة، جاري إغلاقها:", payment);
             return fetch('/api/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
+            }).then(res => {
+                if (!res.ok) throw new Error("فشل في إغلاق الدفعة المعلقة في السيرفر");
             });
         };
 
@@ -76,10 +77,7 @@
             }
 
             try {
-                // تهيئة النظام
                 await window.Pi.init({ version: "2.0", sandbox: true });
-                
-                // التوثيق وربط الحساب بالشكل الرسمي الصحيح
                 const auth = await window.Pi.authenticate(['username', 'payments'], onIncompletePaymentFound);
                 
                 statusDiv.innerText = `🟢 متصل بنجاح: ${auth.user.username}`;
@@ -98,16 +96,20 @@
             document.getElementById('buyButton').onclick = async () => {
                 try {
                     await window.Pi.createPayment({
-                        amount: 0.1, // نصيحة: يفضل البدء بقيم صغيرة جداً في التست نت للتجربة الفورية
+                        amount: 0.1,
                         memo: "شراء كتاب: " + book.title,
                         metadata: { bookId: id }
                     }, {
                         onReadyForServerApproval: (paymentId) => {
-                            // إرسال الطلب مباشرة بدون تشتيت الـ SDK بـ Promises داخلية
                             return fetch('/api/approve', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId })
+                            }).then(async res => {
+                                if (!res.ok) {
+                                    const errText = await res.text();
+                                    throw new Error("فشل الموافقة من السيرفر: " + errText);
+                                }
                             });
                         },
                         onReadyForServerCompletion: (paymentId, txid) => {
@@ -115,13 +117,13 @@
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ paymentId, txid })
-                            }).then(res => {
-                                if (res.ok) {
-                                    alert("🎉 تمت العملية بنجاح تام! تم شراء الكتاب بنجاح.");
-                                    closeModal();
-                                } else {
-                                    alert("فشل تأكيد السيرفر، يرجى مراجعة الـ Logs.");
+                            }).then(async res => {
+                                if (!res.ok) {
+                                    const errText = await res.text();
+                                    throw new Error("فشل الإكمال من السيرفر: " + errText);
                                 }
+                                alert("🎉 تمت العملية بنجاح تام! تم شراء الكتاب بنجاح.");
+                                closeModal();
                             });
                         },
                         onCancel: () => alert("تم إلغاء عملية الدفع"),
