@@ -100,10 +100,10 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            text-decoration: none;
             margin-bottom: 12px;
             transition: all 0.2s;
             border: none;
+            font-family: inherit;
         }
 
         .btn-download {
@@ -128,7 +128,7 @@
         .preview-wrapper {
             width: 100%;
             max-width: 480px;
-            height: 300px;
+            height: 380px;
             margin-top: 20px;
             border-radius: 8px;
             overflow: hidden;
@@ -154,10 +154,10 @@
         <div class="download-card">
             <div class="success-icon">🎉</div>
             <h2 class="card-title">جاهز للقراءة والتنزيل</h2>
-            <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك أو عرضه.</p>
+            <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك أو عرضه عبر الخيارات أدناه.</p>
             
-            <a href="#" id="direct-download-btn" class="btn-action btn-download">📥 تحميل الكتاب (PDF) مباشر</a>
-            <a href="#" id="external-view-btn" target="_blank" class="btn-action btn-view-external">🌐 فتح المعاينة في نافذة خارجية</a>
+            <button id="direct-download-btn" class="btn-action btn-download">📥 تحميل وفتح الكتاب مباشرة</button>
+            <button id="external-view-btn" class="btn-action btn-view-external">🌐 فتح المعاينة السحابية</button>
         </div>
 
         <div class="preview-wrapper">
@@ -180,17 +180,17 @@
             // تحديث اسم الكتاب في شريط العناوين
             document.getElementById('book-title-display').innerText = bookName;
 
-            // 2. تفعيل رابط التحميل المباشر من سيرفر الأرشيف
-            const downloadBtn = document.getElementById('direct-download-btn');
-            downloadBtn.href = pdfUrl;
-            // إجبار المتصفح على محاولة تنزيل الملف بدلاً من فتحه
-            downloadBtn.setAttribute('download', `${bookName}.pdf`);
+            // 2. إجبار المتصفح على الانتقال المباشر لملف الـ PDF وتخطي تعليق الـ Download الخاص بـ Pi
+            document.getElementById('direct-download-btn').addEventListener('click', function() {
+                window.location.href = pdfUrl;
+            });
 
-            // 3. تفعيل رابط المعاينة الخارجية النظيف
-            const externalBtn = document.getElementById('external-view-btn');
-            externalBtn.href = pdfUrl;
+            // 3. فتح المعاينة السحابية من خلال استدعاء نافذة التوجيه المباشر لـ Google Viewer
+            document.getElementById('external-view-btn').addEventListener('click', function() {
+                window.location.href = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=false`;
+            });
 
-            // 4. تشغيل المعاينة المدمجة بالأسفل عبر ممر جوجل المعدل لعلها تستجيب
+            // 4. تشغيل المعاينة المدمجة بالأسفل تلقائياً للمستخدمين الذين تدعم هواتفهم العرض الداخلي
             const safeGoogleUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
             document.getElementById('backup-viewer').src = safeGoogleUrl;
         }
