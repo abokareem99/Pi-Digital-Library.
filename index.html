@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتبة باي الرقمية</title>
     
-    <!-- تضمين مكتبة Pi Network SDK الرسمية -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
     <style>
@@ -57,7 +56,7 @@
             cursor: pointer;
         }
 
-        /* حالة النجاح الأخضر */
+        /* حالة النجاح الأخضر المأخوذة من صورتك الأصلية */
         .status-bar.connected {
             background-color: #063116;
             border: 1px solid #0b5025;
@@ -210,7 +209,7 @@
 
         <div class="status-bar" id="auth-status-bar" onclick="authenticateUser()">
             <span class="status-dot"></span>
-            <span id="status-text">جاري تهيئة النظام...</span>
+            <span id="status-text">جاري فحص الاتصال بالحساب...</span>
         </div>
 
         <div class="books-grid">
@@ -281,18 +280,18 @@
         let currentPuchasedUrl = "";
         let currentPurchasedTitle = "";
 
-        // 1. تهيئة الـ SDK فوراً عند تحميل الصفحة
+        // تهيئة الـ SDK
         try {
             Pi.init({ version: "2.0", sandbox: true });
         } catch(e) {
             console.error("فشلت التهيئة المبدئية:", e);
         }
 
-        // 2. دالة معالجة العمليات المعلقة (تنقذ المحفظة من الـ Timeout والتعليق البلوكي)
+        // دالة معالجة العمليات المعلقة وتصفيتها من السيرفر لمنع التعليق (مربوطة بالمسار المحدث /api/complete)
         function onIncompletePaymentFound(payment) {
-            console.log("تم كشف عملية معلقة قديمة، جاري تصفيتها وتسجيلها بالسيرفر لإلغاء التعليق...");
+            console.log("تم كشف عملية معلقة قديمة، جاري تصفيتها وتسجيلها بالسيرفر...");
             
-            return fetch('/api/complete-payment', {
+            return fetch('/api/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -301,15 +300,10 @@
                 })
             })
             .then(res => res.json())
-            .then(() => {
-                console.log("تمت تصفية المعاملة المعلقة بنجاح.");
-            })
-            .catch(err => {
-                console.error("فشل إغلاق المعاملة المعلقة بالسيرفر:", err);
-            });
+            .catch(err => console.error("فشل إغلاق المعاملة المعلقة:", err));
         }
 
-        // 3. دالة تسجيل الدخول والربط الآمن
+        // دالة تسجيل الدخول والربط
         function authenticateUser() {
             if (isUserAuthenticated) return;
 
@@ -317,7 +311,6 @@
             statusBar.className = "status-bar"; 
             document.getElementById('status-text').innerText = "جاري فحص الاتصال بالحساب...";
 
-            // طلب المصادقة الرسمي
             Pi.authenticate(['username', 'payments'], onIncompletePaymentFound)
             .then(function(auth) {
                 isUserAuthenticated = true;
@@ -331,12 +324,11 @@
             });
         }
 
-        // انتظر ثانية كاملة ليتنفس المتصفح ويتحقق من الروابط قبل تشغيل الدخول تلقائياً
         window.onload = function() {
             setTimeout(authenticateUser, 1000);
         };
 
-        // 4. دالة بدء الدفع عند النقر على كرت الكتاب
+        // دالة الدفع والشراء الأساسية
         function startPurchase(bookId, amount, bookTitle) {
             if (!isUserAuthenticated) {
                 alert("يرجى النقر على شريط الحالة العلوي للاتصال بشبكة Pi أولاً.");
@@ -350,29 +342,30 @@
                 memo: "شراء وتصفح " + bookTitle,
                 metadata: { bookId: bookId }
             }, {
+                // تصفح السيرفر للموافقة - المسار المحدث المطابق لكود خادمك تماماً
                 onReadyForServerApproval: function(paymentId) {
-                    fetch('/api/approve-payment', {
+                    fetch('/api/approve', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: paymentId })
                     });
                 },
+                // إغلاق المعاملة نهائياً وتسجيل الخصم - المسار المحدث المطابق لكود خادمك تماماً
                 onReadyForServerCompletion: function(paymentId, txid) {
-                    fetch('/api/complete-payment', {
+                    fetch('/api/complete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: paymentId, txid: txid })
                     })
                     .then(res => res.json())
                     .then(data => {
-                        // إرجاع اسم الشريط للأخضر الأصلي المستقر
                         document.getElementById('status-text').innerText = "متصل بنجاح";
                         
                         const baseDomain = window.location.origin;
                         currentPuchasedUrl = baseDomain + "/api_eq_al_makhtoom/" + bookId + ".pdf"; 
                         currentPurchasedTitle = bookTitle;
 
-                        // إظهار نافذة نجاح الشراء
+                        // فتح نافذة نجاح الشراء الخضراء والجميلة
                         document.getElementById('success-modal').style.display = 'flex';
                     });
                 },
@@ -381,12 +374,12 @@
                 },
                 onError: function(error, payment) {
                     alert("انتهت مهلة الطلب أو حدث خطأ: " + error.message);
-                    authenticateUser(); // إعادة إنعاش الاتصال فوراً
+                    authenticateUser(); 
                 }
             });
         }
 
-        // التوجيه للملف المنفصل لقراءة الكتاب فور الضغط على ممتاز
+        // الانتقال لملف المستعرض المنفصل فور الضغط على ممتاز
         document.getElementById('btn-read-now').addEventListener('click', function() {
             if(currentPuchasedUrl) {
                 window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPuchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
