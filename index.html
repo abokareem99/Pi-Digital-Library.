@@ -16,7 +16,7 @@
         }
 
         body {
-            background-color: #0d1624; /* اللون الداكن الأصلي للتطبيق */
+            background-color: #0d1624; 
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px 15px;
@@ -27,10 +27,9 @@
 
         .app-container {
             width: 100%;
-            max-width: 480px; /* متوافق تماماً مع أبعاد متصفح Pi للهواتف */
+            max-width: 480px; 
         }
 
-        /* عنوان التطبيق الرئيسي */
         .app-title {
             text-align: center;
             font-size: 26px;
@@ -39,11 +38,11 @@
             color: #ffffff;
         }
 
-        /* شريط حالة الاتصال الأخضر كما في الصورة */
+        /* شريط حالة الاتصال المتغير حسب الحالة */
         .status-bar {
-            background-color: #063116;
-            border: 1px solid #0b5025;
-            color: #2ecc71;
+            background-color: #1a2436;
+            border: 1px solid #2c3a50;
+            color: #a0aec0;
             padding: 12px;
             border-radius: 8px;
             text-align: center;
@@ -54,18 +53,29 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        /* حالة النجاح الأخضر */
+        .status-bar.connected {
+            background-color: #063116;
+            border: 1px solid #0b5025;
+            color: #2ecc71;
         }
 
         .status-dot {
             width: 12px;
             height: 12px;
-            background-color: #2ecc71;
+            background-color: #7f8c8d;
             border-radius: 50%;
             display: inline-block;
+        }
+
+        .status-bar.connected .status-dot {
+            background-color: #2ecc71;
             box-shadow: 0 0 8px #2ecc71;
         }
 
-        /* شبكة عرض الكتب (Grid System) */
         .books-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -73,7 +83,6 @@
             margin-bottom: 30px;
         }
 
-        /* كرت الكتاب الأصلي */
         .book-card {
             background-color: #1a2436;
             border-radius: 12px;
@@ -94,7 +103,6 @@
             transform: scale(1.02);
         }
 
-        /* إيقونات الكتب الكبيرة */
         .book-icon {
             font-size: 36px;
             margin-bottom: 12px;
@@ -108,9 +116,9 @@
             line-height: 1.4;
         }
 
-        /* --- النافذة المنبثقة لنجاح العملية (Modal) كما في الصورة الثانية --- */
+        /* نافذة نجاح العملية */
         .modal-overlay {
-            display: none; /* مخفية افتراضياً وتظهر عند نجاح الدفع */
+            display: none; 
             position: fixed;
             top: 0;
             left: 0;
@@ -134,7 +142,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* دائرة علامة الصح الخضراء */
         .success-circle {
             width: 70px;
             height: 70px;
@@ -164,7 +171,6 @@
             margin-bottom: 25px;
         }
 
-        /* زر "ممتاز" الأخضر العريض لقراءة الكتاب المشتري */
         .btn-success {
             background-color: #00a86b;
             color: #ffffff;
@@ -186,18 +192,15 @@
 <body>
 
     <div class="app-container">
-        <!-- عنوان التطبيق -->
         <h1 class="app-title">مكتبة باي الرقمية</h1>
 
-        <!-- شريط حالة الاتصال الديناميكي مع المطور -->
-        <div class="status-bar">
+        <!-- شريط الحالة الذي سيتحدث تلقائياً عند تسجيل الدخول -->
+        <div class="status-bar" id="auth-status-bar">
             <span class="status-dot"></span>
-            متصل بنجاح: <span id="user-profile">Abokareem999</span>
+            <span id="status-text">جاري الاتصال بشبكة باي...</span>
         </div>
 
-        <!-- شبكة الكتب المأخوذة من واجهتك الأصلية تماماً -->
         <div class="books-grid">
-            
             <div class="book-card" onclick="startPurchase('raheeq', 1.0, 'كتاب الرحيق المختوم')">
                 <span class="book-icon">🕌</span>
                 <span class="book-name">الرحيق المختوم</span>
@@ -247,11 +250,10 @@
                 <span class="book-icon">📊</span>
                 <span class="book-name">الاقتصاد العجيب</span>
             </div>
-
         </div>
     </div>
 
-    <!-- النافذة المنبثقة لنجاح الشراء المأخوذة من صورتك الحقيقية -->
+    <!-- النافذة المنبثقة لنجاح الشراء -->
     <div class="modal-overlay" id="success-modal">
         <div class="modal-box">
             <div class="success-circle">✓</div>
@@ -262,35 +264,62 @@
     </div>
 
     <script>
-        // تهيئة الـ Pi SDK
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); // غير القيمة لـ false عند تدشين التطبيق الحقيقي على الماينت
+        Pi.init({ version: "2.0", sandbox: true }); // اجعلها false عند النشر الفعلي على الماينت
 
-        // متغيرات مؤقتة لحفظ بيانات الكتاب الذي يتم شراؤه حالياً لفتحه لاحقاً
+        let isUserAuthenticated = false;
         let currentPuchasedUrl = "";
         let currentPurchasedTitle = "";
 
+        // خطوة تسجيل الدخول الإلزامية لربط المحفظة فور فتح المتصفح
+        function authenticateUser() {
+            Pi.authenticate(['username', 'payments'], onIncompletePaymentFound)
+            .then(function(auth) {
+                isUserAuthenticated = true;
+                // تحديث الشريط ليصبح أخضر تماماً كصورتك ويظهر اسم المستخدم الحقيقي الموثق
+                const statusBar = document.getElementById('auth-status-bar');
+                statusBar.classList.add('connected');
+                document.getElementById('status-text').innerText = "متصل بنجاح: " + auth.user.username;
+            })
+            .catch(function(error) {
+                console.error(error);
+                document.getElementById('status-text').innerText = "فشل الاتصال: يرجى فتح التطبيق من متصفح Pi";
+            });
+        }
+
+        // معالجة المدفوعات المعلقة إن وجدت (مطلوبة برمجياً من Pi)
+        function onIncompletePaymentFound(payment) {
+            fetch('/api/complete-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction.txid })
+            });
+        }
+
+        // تشغيل المصادقة التلقائية عند تحميل الصفحة
+        window.onload = function() {
+            authenticateUser();
+        };
+
+        // دالة الدفع والشراء
         function startPurchase(bookId, amount, bookTitle) {
-            // إشعار بسيط لبدء فتح المحفظة
-            console.log("جاري طلب الدفع لشراء: " + bookTitle);
+            if (!isUserAuthenticated) {
+                alert("يرجى الانتظار حتى يتم تسجيل دخولك عبر متصفح Pi أولاً.");
+                return;
+            }
 
             Pi.createPayment({
                 amount: amount,
                 memo: "شراء وتصفح " + bookTitle,
                 metadata: { bookId: bookId }
             }, {
-                // موافقة السيرفر المبدئية (Approve)
                 onReadyForServerApproval: function(paymentId) {
                     fetch('/api/approve-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: paymentId })
-                    })
-                    .then(res => res.json())
-                    .then(data => console.log("تم تأكيد عملية الاستحقاق المبدئي من السيرفر."));
+                    });
                 },
-                
-                // توقيع الدفع الخارجي وإغلاقه من السيرفر (Complete)
                 onReadyForServerCompletion: function(paymentId, txid) {
                     fetch('/api/complete-payment', {
                         method: 'POST',
@@ -299,27 +328,24 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        // إعداد الرابط بشكل تلقائي وديناميكي بالكامل بناءً على نطاق المتصفح الحالي
                         const baseDomain = window.location.origin;
-                        
-                        // حفظ روابط الملف المشتري لفتحها عند الضغط على ممتاز
                         currentPuchasedUrl = baseDomain + "/api_eq_al_makhtoom/" + bookId + ".pdf"; 
                         currentPurchasedTitle = bookTitle;
 
-                        // إظهار نافذة نجاح العملية الأصلية والجميلة فوراً
+                        // إظهار نافذة النجاح
                         document.getElementById('success-modal').style.display = 'flex';
                     });
                 },
                 onCancel: function(paymentId) {
-                    alert("تم إلغاء عملية الشراء من قبل المستخدم.");
+                    console.log("تم إلغاء الدفع.");
                 },
                 onError: function(error, payment) {
-                    alert("عذراً، حدث خطأ أثناء معالجة عملية الدفع: " + error.message);
+                    alert("خطأ بالدفع: " + error.message);
                 }
             });
         }
 
-        // عند النقر على زر "ممتاز" الأخضر في النافذة المنبثقة، يتم نقله فوراً لقارئ الأجزاء الكامل بدون نقص
+        // عند الضغط على ممتاز يفتح الملف الآخر المنفصل
         document.getElementById('btn-read-now').addEventListener('click', function() {
             if(currentPuchasedUrl) {
                 window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPuchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
