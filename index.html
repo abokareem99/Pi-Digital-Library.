@@ -3,120 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المكتبة الرقمية - متجر الكتب</title>
+    <title>مكتبة باي الرقمية</title>
     
+    <!-- تضمين مكتبة Pi Network SDK الرسمية -->
     <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
     <style>
-        :root {
-            --pi-color: #f1c40f;
-            --primary-color: #1a5f7a;
-            --bg-color: #f4f6f9;
-        }
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0d1624; /* اللون الداكن الأصلي للتطبيق */
+            color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* متوافق تماماً مع أبعاد متصفح Pi للهواتف */
+        }
+
+        /* عنوان التطبيق الرئيسي */
+        .app-title {
             text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        h1 { color: var(--primary-color); margin-bottom: 5px; }
-        .subtitle { color: #666; margin-bottom: 30px; }
-        
-        /* تصميم كرت الكتاب */
-        .book-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
             margin-bottom: 20px;
-            background: #fafafa;
+            color: #ffffff;
         }
-        .book-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
-        .book-price { color: #e67e22; font-weight: bold; font-size: 18px; margin-bottom: 15px; }
-        
-        /* زر الشراء عملة Pi */
-        .btn-pi-pay {
-            background-color: var(--pi-color);
-            color: #2c3e50;
+
+        /* شريط حالة الاتصال الأخضر كما في الصورة */
+        .status-bar {
+            background-color: #063116;
+            border: 1px solid #0b5025;
+            color: #2ecc71;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        /* شبكة عرض الكتب (Grid System) */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* كرت الكتاب الأصلي */
+        .book-card {
+            background-color: #1a2436;
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+            border: 1px solid transparent;
+        }
+
+        .book-card:hover {
+            background-color: #222f46;
+            transform: scale(1.02);
+        }
+
+        /* إيقونات الكتب الكبيرة */
+        .book-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .book-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #e0e6ed;
+            line-height: 1.4;
+        }
+
+        /* --- النافذة المنبثقة لنجاح العملية (Modal) كما في الصورة الثانية --- */
+        .modal-overlay {
+            display: none; /* مخفية افتراضياً وتظهر عند نجاح الدفع */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background-color: #09111e;
+            border: 2px solid #11233b;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 340px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* دائرة علامة الصح الخضراء */
+        .success-circle {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #00a86b;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px auto;
+            color: #00a86b;
+            font-size: 32px;
+            font-weight: bold;
+            background-color: rgba(0, 168, 107, 0.05);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #a0aec0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        /* زر "ممتاز" الأخضر العريض لقراءة الكتاب المشتري */
+        .btn-success {
+            background-color: #00a86b;
+            color: #ffffff;
             border: none;
-            padding: 12px 24px;
+            width: 100%;
+            padding: 14px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            width: 100%;
-            transition: background 0.2s;
+            transition: background-color 0.2s;
         }
-        .btn-pi-pay:hover { background-color: #f39c12; }
-        
-        #status-message { margin-top: 20px; color: #7f8c8d; font-weight: bold; }
+
+        .btn-success:hover {
+            background-color: #008f5d;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>المكتبة الرقمية</h1>
-        <p class="subtitle">اشترِ كتبك المفضلة باستخدام عملة Pi</p>
+    <div class="app-container">
+        <!-- عنوان التطبيق -->
+        <h1 class="app-title">مكتبة باي الرقمية</h1>
 
-        <div class="book-card">
-            <div class="book-title">كتاب الرحيق المختوم</div>
-            <div class="book-price">1 Pi</div>
-            <button class="btn-pi-pay" onclick="payWithPi('raheeq', 1.0, 'شراء كتاب الرحيق المختوم')">
-                ⚡ الشراء بواسطة Pi
-            </button>
+        <!-- شريط حالة الاتصال الديناميكي مع المطور -->
+        <div class="status-bar">
+            <span class="status-dot"></span>
+            متصل بنجاح: <span id="user-profile">Abokareem999</span>
         </div>
 
-        <div id="status-message">جاهز للطلب...</div>
+        <!-- شبكة الكتب المأخوذة من واجهتك الأصلية تماماً -->
+        <div class="books-grid">
+            
+            <div class="book-card" onclick="startPurchase('raheeq', 1.0, 'كتاب الرحيق المختوم')">
+                <span class="book-icon">🕌</span>
+                <span class="book-name">الرحيق المختوم</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('khaldoun', 1.0, 'مقدمة ابن خلدون')">
+                <span class="book-icon">🏛️</span>
+                <span class="book-name">مقدمة ابن خلدون</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('nations', 1.0, 'ثروة الأمم')">
+                <span class="book-icon">📈</span>
+                <span class="book-name">ثروة الأمم</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('alchemist', 1.0, 'الخيميائي')">
+                <span class="book-icon">✨</span>
+                <span class="book-name">الخيميائي</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('davinci', 1.0, 'شيفرة دافنشي')">
+                <span class="book-icon">🕵️</span>
+                <span class="book-name">شيفرة دافنشي</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('time', 1.0, 'تاريخ موجز للزمن')">
+                <span class="book-icon">🔬</span>
+                <span class="book-name">تاريخ موجز للزمن</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('universe', 1.0, 'الكون')">
+                <span class="book-icon">🌌</span>
+                <span class="book-name">الكون</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('leagues', 1.0, 'عشرون ألف فرسخ')">
+                <span class="book-icon">🌊</span>
+                <span class="book-name">عشرون ألف فرسخ</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('life', 1.0, 'جدد حياتك')">
+                <span class="book-icon">📖</span>
+                <span class="book-name">جدد حياتك</span>
+            </div>
+
+            <div class="book-card" onclick="startPurchase('economy', 1.0, 'الاقتصاد العجيب')">
+                <span class="book-icon">📊</span>
+                <span class="book-name">الاقتصاد العجيب</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- النافذة المنبثقة لنجاح الشراء المأخوذة من صورتك الحقيقية -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal-box">
+            <div class="success-circle">✓</div>
+            <h3 class="modal-title">نجاح العملية</h3>
+            <p class="modal-text">🎉 تمت العملية بنجاح تام!<br>تم تأكيد وشراء الكتاب بنجاح عبر شبكة باي.</p>
+            <button class="btn-success" id="btn-read-now">ممتاز</button>
+        </div>
     </div>
 
     <script>
-        // تهيئة الـ Pi SDK فور تحميل الصفحة
+        // تهيئة الـ Pi SDK
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); // اجعل sandbox: false عند إطلاق التطبيق الحقيقي للمستخدمين
+        Pi.init({ version: "2.0", sandbox: true }); // غير القيمة لـ false عند تدشين التطبيق الحقيقي على الماينت
 
-        // دالة بدء عملية الدفع عند ضغط المستخدم على زر الشراء
-        function payWithPi(bookId, amount, memoDescription) {
-            document.getElementById('status-message').innerText = "جاري فتح محفظة Pi...";
+        // متغيرات مؤقتة لحفظ بيانات الكتاب الذي يتم شراؤه حالياً لفتحه لاحقاً
+        let currentPuchasedUrl = "";
+        let currentPurchasedTitle = "";
 
-            // إنشاء عملية دفع رسمية عبر متصفح Pi
+        function startPurchase(bookId, amount, bookTitle) {
+            // إشعار بسيط لبدء فتح المحفظة
+            console.log("جاري طلب الدفع لشراء: " + bookTitle);
+
             Pi.createPayment({
                 amount: amount,
-                memo: memoDescription,
+                memo: "شراء وتصفح " + bookTitle,
                 metadata: { bookId: bookId }
             }, {
-                // الخطوة أ: عند إنشاء الطلب بنجاح، نرسل الـ paymentId إلى السيرفر لتسجيله والموافقة عليه
+                // موافقة السيرفر المبدئية (Approve)
                 onReadyForServerApproval: function(paymentId) {
-                    document.getElementById('status-message').innerText = "جاري مراجعة الطلب من السيرفر...";
-                    
-                    // إرسال الـ paymentId إلى السيرفر الخاص بك (api/index.js على Vercel)
                     fetch('/api/approve-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentId: paymentId })
                     })
                     .then(res => res.json())
-                    .then(data => {
-                        console.log("تمت موافقة السيرفر المبدئية بنجاح");
-                    })
-                    .catch(err => {
-                        console.error("خطأ في موافقة السيرفر المبدئية:", err);
-                    });
+                    .then(data => console.log("تم تأكيد عملية الاستحقاق المبدئي من السيرفر."));
                 },
                 
-                // الخطوة ب: بعد موافقة السيرفر، وتوقيع المستخدم على المعاملة داخل محفظته بنجاح
+                // توقيع الدفع الخارجي وإغلاقه من السيرفر (Complete)
                 onReadyForServerCompletion: function(paymentId, txid) {
-                    document.getElementById('status-message').innerText = "جاري إتمام العملية ونقل الأموال...";
-                    
-                    // إرسال التوكيد النهائي والتسجيل للسيرفر لإغلاق الدفع
                     fetch('/api/complete-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -124,35 +299,32 @@
                     })
                     .then(res => res.json())
                     .then(data => {
-                        document.getElementById('status-message').innerText = "تم الدفع بنجاح! جاري فتح الكتاب...";
+                        // إعداد الرابط بشكل تلقائي وديناميكي بالكامل بناءً على نطاق المتصفح الحالي
+                        const baseDomain = window.location.origin;
                         
-                        // استخدام نطاق الموقع الحالي تلقائياً لتركيب رابط الملف بشكل صحيح وديناميكي
-                        const currentDomain = window.location.origin;
-                        
-                        // هنا مسار ملف الـ PDF المرفوع على خادمك (تأكد أن الملف موجود في هذا المسار تماماً)
-                        const bookUrl = currentDomain + "/path_to/raheeq.pdf"; 
-                        const bookTitle = "كتاب الرحيق المختوم";
-                        
-                        // الانتقال الفوري لملف المستعرض المنفصل (viewer.html) وتمرير البيانات عبر الرابط
-                        window.location.href = "/viewer.html?file=" + encodeURIComponent(bookUrl) + "&title=" + encodeURIComponent(bookTitle);
-                    })
-                    .catch(err => {
-                        console.error("خطأ في إتمام العملية من السيرفر:", err);
-                        document.getElementById('status-message').innerText = "حدث خطأ أثناء التأكيد النهائي للدفع.";
+                        // حفظ روابط الملف المشتري لفتحها عند الضغط على ممتاز
+                        currentPuchasedUrl = baseDomain + "/api_eq_al_makhtoom/" + bookId + ".pdf"; 
+                        currentPurchasedTitle = bookTitle;
+
+                        // إظهار نافذة نجاح العملية الأصلية والجميلة فوراً
+                        document.getElementById('success-modal').style.display = 'flex';
                     });
                 },
-                
-                // في حال إلغاء المستخدم للعملية
                 onCancel: function(paymentId) {
-                    document.getElementById('status-message').innerText = "تم إلغاء عملية الدفع بواسطة المستخدم.";
+                    alert("تم إلغاء عملية الشراء من قبل المستخدم.");
                 },
-                
-                // في حال حدوث أي خطأ غير متوقع بالشبكة أو داخل الـ SDK
                 onError: function(error, payment) {
-                    document.getElementById('status-message').innerText = "حدث خطأ أثناء الدفع: " + error.message;
+                    alert("عذراً، حدث خطأ أثناء معالجة عملية الدفع: " + error.message);
                 }
             });
         }
+
+        // عند النقر على زر "ممتاز" الأخضر في النافذة المنبثقة، يتم نقله فوراً لقارئ الأجزاء الكامل بدون نقص
+        document.getElementById('btn-read-now').addEventListener('click', function() {
+            if(currentPuchasedUrl) {
+                window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPuchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
+            }
+        });
     </script>
 </body>
 </html>
