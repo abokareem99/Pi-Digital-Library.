@@ -1,12 +1,82 @@
 [
-  { "id": 1, "title": "الرحيق المختوم", "author": "صفي الرحمن", "icon": "🕌", "amount": 0.1, "download_url": "https://drive.google.com/file/d/example1" },
-  { "id": 2, "title": "مقدمة ابن خلدون", "author": "ابن خلدون", "icon": "🏛️", "amount": 0.1, "download_url": "https://drive.google.com/file/d/example2" },
-  { "id": 3, "title": "ثروة الأمم", "author": "آدم سميث", "icon": "📈", "amount": 0.2, "download_url": "https://drive.google.com/file/d/example3" },
-  { "id": 4, "title": "الخيميائي", "author": "باولو كويلو", "icon": "✨", "amount": 0.15, "download_url": "https://drive.google.com/file/d/example4" },
-  { "id": 5, "title": "شيفرة دافنشي", "author": "دان براون", "icon": "🕵️", "amount": 0.1, "download_url": "https://drive.google.com/file/d/example5" },
-  { "id": 6, "title": "تاريخ موجز للزمن", "author": "ستيفن هوكينغ", "icon": "🔬", "amount": 0.25, "download_url": "https://drive.google.com/file/d/example6" },
-  { "id": 7, "title": "الكون", "author": "كارل ساغان", "icon": "🌌", "amount": 0.1, "download_url": "https://drive.google.com/file/d/example7" },
-  { "id": 8, "title": "عشرون ألف فرسخ", "author": "جول فيرن", "icon": "🌊", "amount": 0.1, "download_url": "https://drive.google.com/file/d/example8" },
-  { "id": 9, "title": "جدد حياتك", "author": "محمد الغزالي", "icon": "📖", "amount": 0.05, "download_url": "https://drive.google.com/file/d/example9" },
-  { "id": 10, "title": "الاقتصاد العجيب", "author": "ستيفن ليفيت", "icon": "📊", "amount": 0.2, "download_url": "https://drive.google.com/file/d/example10" }
+  { 
+    "id": 1, 
+    "title": "الرحيق المختوم", 
+    "author": "صفي الرحمن", 
+    "icon": "🕌", 
+    "amount": 0.1, 
+    "download_url": "https://ia800205.us.archive.org/19/items/al_raheeq_al_makhtoom/raheeq.pdf" 
+  },
+  { 
+    "id": 2, 
+    "title": "مقدمة ابن خلدون", 
+    "author": "ابن خلدون", 
+    "icon": "🏛️", 
+    "amount": 0.1, 
+    "download_url": "https://ia800203.us.archive.org/22/items/Muqaddimah_Ibnu_Khaldun/Muqaddimah.pdf" 
+  },
+  { 
+    "id": 3, 
+    "title": "ثروة الأمم", 
+    "author": "آدم سميث", 
+    "icon": "📈", 
+    "amount": 0.2, 
+    "download_url": "https://ia800202.us.archive.org/13/items/fp47432/47432.pdf" 
+  },
+  { 
+    "id": 4, 
+    "title": "الخيميائي", 
+    "author": "باولو كويلو", 
+    "icon": "✨", 
+    "amount": 0.15, 
+    "download_url": "https://ia801904.us.archive.org/34/items/alchemist-arabic/alchemist.pdf" 
+  },
+  { 
+    "id": 5, 
+    "title": "شيفرة دافنشي", 
+    "author": "دان براون", 
+    "icon": "🕵️", 
+    "amount": 0.1, 
+    "download_url": "https://ia800205.us.archive.org/16/items/TheDaVinciCodeArabic_201804/The%20Da%20Vinci%20Code%20-%20Arabic.pdf" 
+  },
+  { 
+    "id": 6, 
+    "title": "تاريخ موجز للزمن", 
+    "author": "ستيفن هوكينغ", 
+    "icon": "🔬", 
+    "amount": 0.25, 
+    "download_url": "https://ia601004.us.archive.org/34/items/A_Brief_History_Of_Time_Arabic/history_of_time.pdf" 
+  },
+  { 
+    "id": 7, 
+    "title": "الكون", 
+    "author": "كارل ساغان", 
+    "icon": "🌌", 
+    "amount": 0.1, 
+    "download_url": "https://ia801008.us.archive.org/31/items/CosmosCarlSaganArabic/Cosmos-Carl-Sagan-Arabic.pdf" 
+  },
+  { 
+    "id": 8, 
+    "title": "عشرون ألف فرسخ", 
+    "author": "جول فيرن", 
+    "icon": "🌊", 
+    "amount": 0.1, 
+    "download_url": "https://ia802908.us.archive.org/5/items/20000-league-under-sea/20000%20league%20under%20the%20sea%20-%20arabic.pdf" 
+  },
+  { 
+    "id": 9, 
+    "title": "جدد حياتك", 
+    "author": "محمد الغزالي", 
+    "icon": "📖", 
+    "amount": 0.05, 
+    "download_url": "https://ia801905.us.archive.org/20/items/jadid-hayatak/jadid.pdf" 
+  },
+  { 
+    "id": 10, 
+    "title": "الاقتصاد العجيب", 
+    "author": "ستيفن ليفيت", 
+    "icon": "📊", 
+    "amount": 0.2, 
+    "download_url": "https://ia801300.us.archive.org/14/items/FreakonomicsArabic/Freakonomics_Arabic.pdf" 
+  }
 ]
