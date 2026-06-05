@@ -54,13 +54,22 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
+            cursor: pointer; /* جعل الشريط قابلاً للضغط لإعادة المحاولة */
         }
 
-        /* حالة النجاح الأخضر */
+        /* حالة النجاح الأخضر المأخوذة من صورتك الأصلية */
         .status-bar.connected {
             background-color: #063116;
             border: 1px solid #0b5025;
             color: #2ecc71;
+            cursor: default;
+        }
+
+        /* حالة الفشل باللون الأحمر الخفيف والتنبيهي */
+        .status-bar.failed {
+            background-color: #3c1e1e;
+            border: 1px solid #632525;
+            color: #e74c3c;
         }
 
         .status-dot {
@@ -74,6 +83,11 @@
         .status-bar.connected .status-dot {
             background-color: #2ecc71;
             box-shadow: 0 0 8px #2ecc71;
+        }
+
+        .status-bar.failed .status-dot {
+            background-color: #e74c3c;
+            box-shadow: 0 0 8px #e74c3c;
         }
 
         .books-grid {
@@ -194,8 +208,8 @@
     <div class="app-container">
         <h1 class="app-title">مكتبة باي الرقمية</h1>
 
-        <!-- شريط الحالة الذي سيتحدث تلقائياً عند تسجيل الدخول -->
-        <div class="status-bar" id="auth-status-bar">
+        <!-- عند حدوث فشل، يمكن للمستخدم الضغط على الشريط مجدداً لإعادة المحاولة يدويًا -->
+        <div class="status-bar" id="auth-status-bar" onclick="authenticateUser()">
             <span class="status-dot"></span>
             <span id="status-text">جاري الاتصال بشبكة باي...</span>
         </div>
@@ -265,30 +279,45 @@
 
     <script>
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); // اجعلها false عند النشر الفعلي على الماينت
-
+        
+        // إعداد متغيرات التحكم
         let isUserAuthenticated = false;
         let currentPuchasedUrl = "";
         let currentPurchasedTitle = "";
 
-        // خطوة تسجيل الدخول الإلزامية لربط المحفظة فور فتح المتصفح
+        // بدء تهيئة المكتبة الرسمية
+        try {
+            Pi.init({ version: "2.0", sandbox: true }); // اجعلها false عند النشر الفعلي على الماينت
+        } catch(e) {
+            console.error("خطأ أثناء تهيئة الـ SDK:", e);
+        }
+
+        // دالة تسجيل الدخول وربط الحساب بالمحفظة
         function authenticateUser() {
+            // إذا كان المستخدم متصلاً بالفعل، لا تفعل شيئاً عند الضغط
+            if (isUserAuthenticated) return;
+
+            const statusBar = document.getElementById('auth-status-bar');
+            statusBar.className = "status-bar"; // إعادة تعيين التنسيق الافتراضي الرمادي
+            document.getElementById('status-text').innerText = "جاري الاتصال والتحقق...";
+
+            // بدء طلب المصادقة الرسمي من متصفح باي
             Pi.authenticate(['username', 'payments'], onIncompletePaymentFound)
             .then(function(auth) {
                 isUserAuthenticated = true;
-                // تحديث الشريط ليصبح أخضر تماماً كصورتك ويظهر اسم المستخدم الحقيقي الموثق
-                const statusBar = document.getElementById('auth-status-bar');
-                statusBar.classList.add('connected');
+                statusBar.className = "status-bar connected"; // تحويل الشريط للأخضر الأصلي المعتمد
                 document.getElementById('status-text').innerText = "متصل بنجاح: " + auth.user.username;
             })
             .catch(function(error) {
-                console.error(error);
-                document.getElementById('status-text').innerText = "فشل الاتصال: يرجى فتح التطبيق من متصفح Pi";
+                console.error("خطأ المصادقة:", error);
+                statusBar.className = "status-bar failed"; // تحويل الشريط للون التنبيهي الأحمر
+                document.getElementById('status-text').innerText = "فشل الاتصال: يرجى فتح التطبيق من متصفح Pi (اضغط للإعادة)";
             });
         }
 
-        // معالجة المدفوعات المعلقة إن وجدت (مطلوبة برمجياً من Pi)
+        // معالجة وإغلاق العمليات المعلقة تلقائياً (شرط أساسي لـ Pi)
         function onIncompletePaymentFound(payment) {
+            console.log("تم العثور على معالجة دفع غير مكتملة، جاري إنهائها...");
             fetch('/api/complete-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -296,15 +325,15 @@
             });
         }
 
-        // تشغيل المصادقة التلقائية عند تحميل الصفحة
+        // إعطاء مهلة بسيطة (نصف ثانية) للمتصفح حتى تكتمل تهيئة الـ SDK قبل طلب الاتصال التلقائي
         window.onload = function() {
-            authenticateUser();
+            setTimeout(authenticateUser, 500);
         };
 
-        // دالة الدفع والشراء
+        // دالة إنشاء عملية الدفع والشراء عند ضغط أي كتاب
         function startPurchase(bookId, amount, bookTitle) {
             if (!isUserAuthenticated) {
-                alert("يرجى الانتظار حتى يتم تسجيل دخولك عبر متصفح Pi أولاً.");
+                alert("يرجى التأكد من اتصال حسابك بشبكة باي أولاً بالضغط على شريط الحالة العلوي.");
                 return;
             }
 
@@ -313,6 +342,7 @@
                 memo: "شراء وتصفح " + bookTitle,
                 metadata: { bookId: bookId }
             }, {
+                // خطوة إرسال المعاملة للسيرفر للموافقة (Approve)
                 onReadyForServerApproval: function(paymentId) {
                     fetch('/api/approve-payment', {
                         method: 'POST',
@@ -320,6 +350,7 @@
                         body: JSON.stringify({ paymentId: paymentId })
                     });
                 },
+                // خطوة الخصم النهائي والتأكيد من السيرفر (Complete)
                 onReadyForServerCompletion: function(paymentId, txid) {
                     fetch('/api/complete-payment', {
                         method: 'POST',
@@ -329,10 +360,11 @@
                     .then(res => res.json())
                     .then(data => {
                         const baseDomain = window.location.origin;
+                        // تركيب الرابط التلقائي بناءً على معرّف الكتاب المختار
                         currentPuchasedUrl = baseDomain + "/api_eq_al_makhtoom/" + bookId + ".pdf"; 
                         currentPurchasedTitle = bookTitle;
 
-                        // إظهار نافذة النجاح
+                        // فتح نافذة النجاح الخضراء
                         document.getElementById('success-modal').style.display = 'flex';
                     });
                 },
@@ -340,12 +372,12 @@
                     console.log("تم إلغاء الدفع.");
                 },
                 onError: function(error, payment) {
-                    alert("خطأ بالدفع: " + error.message);
+                    alert("عذراً، حدث خطأ أثناء عملية الدفع: " + error.message);
                 }
             });
         }
 
-        // عند الضغط على ممتاز يفتح الملف الآخر المنفصل
+        // التوجيه للملف المنفصل تصفح الكتاب بالكامل فور الضغط على ممتاز
         document.getElementById('btn-read-now').addEventListener('click', function() {
             if(currentPuchasedUrl) {
                 window.location.href = "/viewer.html?file=" + encodeURIComponent(currentPuchasedUrl) + "&title=" + encodeURIComponent(currentPurchasedTitle);
