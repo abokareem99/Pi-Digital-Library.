@@ -3,233 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المكتبة الرقمية - الرئيسية</title>
+    <title>المكتبة الرقمية - متجر الكتب</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://sdk.minepi.com/pi-sdk.js"></script>
     
     <style>
         :root {
+            --pi-color: #f1c40f;
             --primary-color: #1a5f7a;
-            --dark-bg: #2f3133;
-            --main-bg: #f4f6f9;
+            --bg-color: #f4f6f9;
         }
-
         body {
             margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--main-bg);
-            color: #333;
-        }
-
-        /* --- 1. تصميم واجهة المتجر الرئيسية --- */
-        .store-container {
             padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
             text-align: center;
-            margin-bottom: 30px;
         }
-
-        .btn-buy {
-            background-color: var(--primary-color);
-            color: white;
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: var(--primary-color); margin-bottom: 5px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        
+        /* تصميم كرت الكتاب */
+        .book-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        .book-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .book-price { color: #e67e22; font-weight: bold; font-size: 18px; margin-bottom: 15px; }
+        
+        /* زر الشراء عملة Pi */
+        .btn-pi-pay {
+            background-color: var(--pi-color);
+            color: #2c3e50;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 16px;
+            font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-        }
-
-        /* --- 2. تصميم قارئ الـ PDF (مخفي افتراضياً) --- */
-        #pdf-viewer-section {
-            display: none; /* مخفي حتى تكتمل عملية الشراء */
-            position: fixed;
-            top: 0;
-            left: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             width: 100%;
-            height: 100%;
-            background-color: var(--dark-bg);
-            z-index: 9999;
-            flex-direction: column;
+            transition: background 0.2s;
         }
-
-        .toolbar {
-            background-color: #1f2022;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        #viewer-container {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-y: auto;
-        }
-
-        .pdf-page-canvas {
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            margin-bottom: 25px;
-            max-width: 100%;
-            height: auto !important;
-            border-radius: 4px;
-        }
-
-        /* شاشة مؤشر التحميل */
-        #loading-overlay {
-            display: none; /* يظهر عند بدء معالجة الكتاب */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(47, 49, 51, 0.95);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            color: white;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border-left-color: var(--primary-color);
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-pi-pay:hover { background-color: #f39c12; }
+        
+        #status-message { margin-top: 20px; color: #7f8c8d; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="store-container" id="store-front">
-        <div class="header">
-            <h1>مرحباً بك في المكتبة الرقمية</h1>
-            <p>اختر كتابك المفضل وابدأ القراءة فوراً</p>
+    <div class="container">
+        <h1>المكتبة الرقمية</h1>
+        <p class="subtitle">اشترِ كتبك المفضلة باستخدام عملة Pi</p>
+
+        <div class="book-card">
+            <div class="book-title">كتاب الرحيق المختوم</div>
+            <div class="book-price">1 Pi</div>
+            <button class="btn-pi-pay" onclick="payWithPi('raheeq', 1.0, 'شراء كتاب الرحيق المختوم')">
+                ⚡ الشراء بواسطة Pi
+            </button>
         </div>
 
-        <div style="text-align: center; margin-top: 50px;">
-            <h3>كتاب: الرحيق المختوم</h3>
-            <button class="btn-buy" id="btn-pay-demo" onclick="handlePiPayment()">شراء وقراءة الكتاب الآن</button>
-        </div>
+        <div id="status-message">جاهز للطلب...</div>
     </div>
-
-
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div id="progress-text">جاري تهيئة الكتاب...</div>
-    </div>
-
-    <div id="pdf-viewer-section">
-        <div class="toolbar">
-            <div id="book-title-display" style="font-weight: bold;">اسم الكتاب المشتري</div>
-            <div>
-                <a id="download-fallback" href="#" download class="btn-buy" style="background-color: #4a4d50; text-decoration: none; font-size: 14px;">تحميل مباشر</a>
-                <button onclick="closeViewer()" class="btn-buy" style="background-color: #cf2a2a; margin-right: 10px;">إغلاق</button>
-            </div>
-        </div>
-        <div id="viewer-container">
-            </div>
-    </div>
-
 
     <script>
-        // إعداد مكتبة PDF.js في الخلفية لمعالجة أجزاء الملف
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        // 2. تهيئة الـ Pi SDK فور تحميل الصفحة
+        const Pi = window.Pi;
+        Pi.init({ version: "2.0", sandbox: true }); // اجعل sandbox: false عند إطلاق التطبيق الحقيقي للعامة
 
-        // دالة محاكاة الدفع عبر Pi SDK (قم بدمجها مع دالة الـ SDK الخاصة بك)
-        function handlePiPayment() {
-            console.log("بدء تشغيل Pi Payment SDK...");
-            
-            // هنا تضع كود الدفع الخاص بك: Pi.createPayment({...})
-            // عند نجاح الدفع تماماً وتأكيده من السيرفر (onSuccess)، نقوم باستدعاء القارئ:
-            
-            const purchasedBookUrl = 'https://yourdomain.com/path_to/raheeq.pdf'; // رابط الملف المشتري
-            const purchasedBookTitle = 'كتاب الرحيق المختوم';
-            
-            // تشغيل القارئ فوراً وبدء البث التدريجي
-            openBookViewer(purchasedBookUrl, purchasedBookTitle);
-        }
+        // دالة بدء عملية الدفع عند ضغط المستخدم على زر الشراء
+        function payWithPi(bookId, amount, memoDescription) {
+            document.getElementById('status-message').innerText = "جاري فتح محفظة Pi...";
 
-        // دالة تشغيل واجهة القارئ وبدء تدفق الملف
-        function openBookViewer(pdfUrl, bookName) {
-            // تحديث العناوين والروابط الاحتياطية
-            document.getElementById('book-title-display').innerText = bookName;
-            document.getElementById('download-fallback').href = pdfUrl;
-            
-            // إظهار شاشة القارئ ومؤشر التحميل
-            document.getElementById('pdf-viewer-section').style.display = 'flex';
-            document.getElementById('loading-overlay').style.display = 'flex';
-            
-            const container = document.getElementById('viewer-container');
-            container.innerHTML = ''; // تنظيف الحاوية من أي كتب سابقة
-
-            // تشغيل تقنية الـ Streaming (التحميل التدفقي التدريجي للأجزاء)
-            const loadingTask = pdfjsLib.getDocument({
-                url: pdfUrl,
-                disableAutoFetch: false,
-                disableStream: false
-            });
-
-            // تحديث النسبة المئوية للتحميل أولاً بأول لمنع مشكلة التحميل الناقص
-            loadingTask.onProgress = function(progress) {
-                const progressText = document.getElementById('progress-text');
-                if (progress.total > 0) {
-                    const percent = Math.round((progress.loaded / progress.total) * 100);
-                    progressText.innerText = `جاري تحميل كتابك... ${percent}%`;
-                } else {
-                    const loadedMb = (progress.loaded / (1024 * 1000)).toFixed(1);
-                    progressText.innerText = `جاري استلام البيانات... تم استلام ${loadedMb} ميجابايت`;
-                }
-            };
-
-            // عند معالجة هيكل الملف الأولي بنجاح
-            loadingTask.promise.then(async function(pdf) {
-                document.getElementById('loading-overlay').style.display = 'none'; // إخفاء مؤشر النسبة
+            // إنشاء عملية دفع رسمية عبر متصفح Pi
+            Pi.createPayment({
+                amount: amount,
+                memo: memoDescription,
+                metadata: { bookId: bookId }
+            }, {
+                // الخطوة أ: عند إنشاء الطلب بنجاح، نرسل الـ paymentId إلى السيرفر الخاص بك لتسجيله
+                onReadyForServerApproval: function(paymentId) {
+                    document.getElementById('status-message').innerText = "جاري مراجعة الطلب من السيرفر...";
+                    
+                    // إرسال الـ paymentId إلى ملف الخلفية api/index.js لتأكيده مع Pi Servers
+                    fetch('/api/approve-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: paymentId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("تمت موافقة السيرفر المبدئية بنجاح");
+                    });
+                },
                 
-                // رندرة وطباعة الصفحات بالتتابع فور وصولها
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    try {
-                        const page = await pdf.getPage(pageNum);
-                        const viewport = page.getViewport({ scale: 1.5 }); // مقياس مناسب لشاشات الهواتف ومتصفح Pi
+                // الخطوة ب: بعد موافقة السيرفر، يقوم المستخدم بوضع كلماته السرية في محفظته ويتم الخصم
+                onReadyForServerCompletion: function(paymentId, txid) {
+                    document.getElementById('status-message').innerText = "جاري إتمام العملية ونقل الأموال...";
+                    
+                    // إرسال التوكيد النهائي للسيرفر لتسليم الكتاب
+                    fetch('/api/complete-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paymentId: paymentId, txid: txid })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('status-message').innerText = "تم الدفع بنجاح! جاري فتح الكتاب...";
                         
-                        const canvas = document.createElement('canvas');
-                        canvas.className = 'pdf-page-canvas';
-                        const context = canvas.getContext('2d');
+                        // الروابط الديناميكية التي تفتح الملف الآخر المنفصل
+                        const bookUrl = "https://yourdomain.com/path_to/raheeq.pdf"; // رابط الـ PDF الفعلي على خادمك
+                        const bookTitle = "كتاب الرحيق المختوم";
                         
-                        canvas.height = viewport.height;
-                        canvas.width = viewport.width;
-                        container.appendChild(canvas);
-                        
-                        const renderContext = { canvasContext: context, viewport: viewport };
-                        await page.render(renderContext).promise;
-                    } catch (e) {
-                        console.error("خطأ في معالجة الصفحة: " + pageNum, e);
-                    }
+                        // الانتقال الفوري لملف المستعرض المنفصل وتمرير بيانات الكتاب له عبر الرابط
+                        window.location.href = `/viewer.html?file=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}`;
+                    });
+                },
+                
+                // في حال إلغاء المستخدم للعملية
+                onCancel: function(paymentId) {
+                    document.getElementById('status-message').innerText = "تم إلغاء عملية الدفع بواسطة المستخدم.";
+                },
+                
+                // في حال حدوث أي خطأ غير متوقع بالشبكة
+                onError: function(error, payment) {
+                    document.getElementById('status-message').innerText = "حدث خطأ أثناء الدفع: " + error.message;
                 }
-            }).catch(function(error) {
-                document.getElementById('loading-overlay').style.display = 'none';
-                alert("حدث خطأ أثناء الاتصال بالسيرفر لتحميل الملف بالكامل، يرجى استخدام زر التحميل المباشر.");
             });
-        }
-
-        // دالة لإغلاق القارئ والعودة للمتجر الرئيسي
-        function closeViewer() {
-            document.getElementById('pdf-viewer-section').style.display = 'none';
         }
     </script>
 </body>
