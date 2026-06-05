@@ -79,9 +79,9 @@
     </div>
 
     <script>
-        // 2. تهيئة الـ Pi SDK فور تحميل الصفحة
+        // تهيئة الـ Pi SDK فور تحميل الصفحة
         const Pi = window.Pi;
-        Pi.init({ version: "2.0", sandbox: true }); // اجعل sandbox: false عند إطلاق التطبيق الحقيقي للعامة
+        Pi.init({ version: "2.0", sandbox: true }); // اجعل sandbox: false عند إطلاق التطبيق الحقيقي للمستخدمين
 
         // دالة بدء عملية الدفع عند ضغط المستخدم على زر الشراء
         function payWithPi(bookId, amount, memoDescription) {
@@ -93,11 +93,11 @@
                 memo: memoDescription,
                 metadata: { bookId: bookId }
             }, {
-                // الخطوة أ: عند إنشاء الطلب بنجاح، نرسل الـ paymentId إلى السيرفر الخاص بك لتسجيله
+                // الخطوة أ: عند إنشاء الطلب بنجاح، نرسل الـ paymentId إلى السيرفر لتسجيله والموافقة عليه
                 onReadyForServerApproval: function(paymentId) {
                     document.getElementById('status-message').innerText = "جاري مراجعة الطلب من السيرفر...";
                     
-                    // إرسال الـ paymentId إلى ملف الخلفية api/index.js لتأكيده مع Pi Servers
+                    // إرسال الـ paymentId إلى السيرفر الخاص بك (api/index.js على Vercel)
                     fetch('/api/approve-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -106,14 +106,17 @@
                     .then(res => res.json())
                     .then(data => {
                         console.log("تمت موافقة السيرفر المبدئية بنجاح");
+                    })
+                    .catch(err => {
+                        console.error("خطأ في موافقة السيرفر المبدئية:", err);
                     });
                 },
                 
-                // الخطوة ب: بعد موافقة السيرفر، يقوم المستخدم بوضع كلماته السرية في محفظته ويتم الخصم
+                // الخطوة ب: بعد موافقة السيرفر، وتوقيع المستخدم على المعاملة داخل محفظته بنجاح
                 onReadyForServerCompletion: function(paymentId, txid) {
                     document.getElementById('status-message').innerText = "جاري إتمام العملية ونقل الأموال...";
                     
-                    // إرسال التوكيد النهائي للسيرفر لتسليم الكتاب
+                    // إرسال التوكيد النهائي والتسجيل للسيرفر لإغلاق الدفع
                     fetch('/api/complete-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -123,12 +126,19 @@
                     .then(data => {
                         document.getElementById('status-message').innerText = "تم الدفع بنجاح! جاري فتح الكتاب...";
                         
-                        // الروابط الديناميكية التي تفتح الملف الآخر المنفصل
-                        const bookUrl = "https://yourdomain.com/path_to/raheeq.pdf"; // رابط الـ PDF الفعلي على خادمك
+                        // استخدام نطاق الموقع الحالي تلقائياً لتركيب رابط الملف بشكل صحيح وديناميكي
+                        const currentDomain = window.location.origin;
+                        
+                        // هنا مسار ملف الـ PDF المرفوع على خادمك (تأكد أن الملف موجود في هذا المسار تماماً)
+                        const bookUrl = currentDomain + "/path_to/raheeq.pdf"; 
                         const bookTitle = "كتاب الرحيق المختوم";
                         
-                        // الانتقال الفوري لملف المستعرض المنفصل وتمرير بيانات الكتاب له عبر الرابط
-                        window.location.href = `/viewer.html?file=${encodeURIComponent(bookUrl)}&title=${encodeURIComponent(bookTitle)}`;
+                        // الانتقال الفوري لملف المستعرض المنفصل (viewer.html) وتمرير البيانات عبر الرابط
+                        window.location.href = "/viewer.html?file=" + encodeURIComponent(bookUrl) + "&title=" + encodeURIComponent(bookTitle);
+                    })
+                    .catch(err => {
+                        console.error("خطأ في إتمام العملية من السيرفر:", err);
+                        document.getElementById('status-message').innerText = "حدث خطأ أثناء التأكيد النهائي للدفع.";
                     });
                 },
                 
@@ -137,7 +147,7 @@
                     document.getElementById('status-message').innerText = "تم إلغاء عملية الدفع بواسطة المستخدم.";
                 },
                 
-                // في حال حدوث أي خطأ غير متوقع بالشبكة
+                // في حال حدوث أي خطأ غير متوقع بالشبكة أو داخل الـ SDK
                 onError: function(error, payment) {
                     document.getElementById('status-message').innerText = "حدث خطأ أثناء الدفع: " + error.message;
                 }
