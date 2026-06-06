@@ -13,7 +13,7 @@
     "author": "ابن خلدون", 
     "icon": "🏛️", 
     "amount": 0.1, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/MoqaddematIbnKhaldoun/moqaddema.pdf" 
   },
   { 
     "id": 3, 
@@ -21,7 +21,7 @@
     "author": "آدم سميث", 
     "icon": "📈", 
     "amount": 0.2, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/WealthOfNationsArabic/wealth_of_nations.pdf" 
   },
   { 
     "id": 4, 
@@ -29,7 +29,7 @@
     "author": "باولو كويلو", 
     "icon": "✨", 
     "amount": 0.15, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/AlchemistArabic/alchemist.pdf" 
   },
   { 
     "id": 5, 
@@ -37,7 +37,7 @@
     "author": "دان براون", 
     "icon": "🕵️", 
     "amount": 0.1, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/DavinciCodeArabic/davinci_code.pdf" 
   },
   { 
     "id": 6, 
@@ -45,7 +45,7 @@
     "author": "ستيفن هوكينغ", 
     "icon": "🔬", 
     "amount": 0.25, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/BriefHistoryOfTimeArabic/brief_history_of_time.pdf" 
   },
   { 
     "id": 7, 
@@ -53,15 +53,15 @@
     "author": "كارل ساغان", 
     "icon": "🌌", 
     "amount": 0.1, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/CosmosKarlSaganArabic/cosmos.pdf" 
   },
   { 
     "id": 8, 
-    "title": "عشرون ألف فرسخ", 
+    "title": "عشرون ألف فرسخ تحت الماء", 
     "author": "جول فيرن", 
     "icon": "🌊", 
     "amount": 0.1, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/20000LeaguesUnderSeaArabic/20k_leagues.pdf" 
   },
   { 
     "id": 9, 
@@ -69,7 +69,7 @@
     "author": "محمد الغزالي", 
     "icon": "📖", 
     "amount": 0.05, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/JadedHayatak/jaded_hayatak.pdf" 
   },
   { 
     "id": 10, 
@@ -77,6 +77,6 @@
     "author": "ستيفن ليفيت", 
     "icon": "📊", 
     "amount": 0.2, 
-    "download_url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" 
+    "download_url": "https://archive.org/download/FreakonomicsArabic/freakonomics.pdf" 
   }
 ]
