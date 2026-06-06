@@ -156,51 +156,17 @@
             document.getElementById('direct-download-btn').style.display = 'none';
             document.getElementById('external-view-btn').style.display = 'none';
         } else {
-            document.getElementById('book-title-display').innerText = bookName;
-
-            // تنظيف وإصلاح الرابط إذا كان مشوهاً بـ %2F أو قادماً من جيت هاب
             pdfUrl = decodeURIComponent(pdfUrl);
-            if (pdfUrl.includes('github.com') && !pdfUrl.includes('raw.githubusercontent.com')) {
-                pdfUrl = pdfUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-            }
+            document.getElementById('book-title-display').innerText = bookName;
 
             const downloadBtn = document.getElementById('direct-download-btn');
             const viewBtn = document.getElementById('external-view-btn');
 
-            // 1. زر التحميل المباشر عن طريق جلب البيانات كـ Blob
-            downloadBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const originalText = downloadBtn.innerText;
-                downloadBtn.innerText = "⏳ جاري التحميل...";
-                downloadBtn.style.pointerEvents = "none";
+            // زر التنزيل المباشر من السيرفر السحابي المستقر
+            downloadBtn.href = pdfUrl;
+            downloadBtn.setAttribute('download', bookName + '.pdf');
 
-                fetch(pdfUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error('شبكة ضعيفة أو رابط غير صالح');
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        const blobUrl = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        a.download = bookName + '.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(blobUrl);
-                        
-                        downloadBtn.innerText = originalText;
-                        downloadBtn.style.pointerEvents = "auto";
-                    })
-                    .catch(err => {
-                        // حل احتياطي إذا منع السيرفر التحميل الخلفي
-                        window.open(pdfUrl, '_blank');
-                        downloadBtn.innerText = originalText;
-                        downloadBtn.style.pointerEvents = "auto";
-                    });
-            });
-
-            // 2. زر القراءة الفورية المباشر (تجاوز وسيط جوجل لحل مشكلة الحماية بالكامل)
+            // زر القراءة الفورية المباشرة أونلاين
             viewBtn.href = pdfUrl;
         }
     </script>
