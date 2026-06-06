@@ -5,7 +5,7 @@
     "author": "صفي الرحمن", 
     "icon": "🕌", 
     "amount": 0.1, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/raheeq.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/raheeq.pdf" 
   },
   { 
     "id": 2, 
@@ -13,7 +13,7 @@
     "author": "ابن خلدون", 
     "icon": "🏛️", 
     "amount": 0.1, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/moqaddema.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/moqaddema.pdf" 
   },
   { 
     "id": 3, 
@@ -21,7 +21,7 @@
     "author": "آدم سميث", 
     "icon": "📈", 
     "amount": 0.2, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/wealth_of_nations.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/wealth_of_nations.pdf" 
   },
   { 
     "id": 4, 
@@ -29,7 +29,7 @@
     "author": "باولو كويلو", 
     "icon": "✨", 
     "amount": 0.15, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/alchemist.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/alchemist.pdf" 
   },
   { 
     "id": 5, 
@@ -37,7 +37,7 @@
     "author": "دان براون", 
     "icon": "🕵️", 
     "amount": 0.1, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/davinci_code.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/davinci_code.pdf" 
   },
   { 
     "id": 6, 
@@ -45,7 +45,7 @@
     "author": "ستيفن هوكينغ", 
     "icon": "🔬", 
     "amount": 0.25, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/brief_history_of_time.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/brief_history_of_time.pdf" 
   },
   { 
     "id": 7, 
@@ -53,7 +53,7 @@
     "author": "كارل ساغان", 
     "icon": "🌌", 
     "amount": 0.1, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/cosmos.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/cosmos.pdf" 
   },
   { 
     "id": 8, 
@@ -61,7 +61,7 @@
     "author": "جول فيرن", 
     "icon": "🌊", 
     "amount": 0.1, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/20k_leagues.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/20k_leagues.pdf" 
   },
   { 
     "id": 9, 
@@ -69,7 +69,7 @@
     "author": "محمد الغزالي", 
     "icon": "📖", 
     "amount": 0.05, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/jaded_hayatak.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/jaded_hayatak.pdf" 
   },
   { 
     "id": 10, 
@@ -77,6 +77,6 @@
     "author": "ستيفن ليفيت", 
     "icon": "📊", 
     "amount": 0.2, 
-    "download_url": "https://pub-84bc54bf763b46959bdf813e31a8779f.r2.dev/freakonomics.pdf" 
+    "download_url": "https://raw.githubusercontent.com/abokareem99/Pi-Digital-Library/main/api/books/freakonomics.pdf" 
   }
 ]
