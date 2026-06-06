@@ -140,8 +140,8 @@
             <h2 class="card-title">جاهز للقراءة والتنزيل</h2>
             <p class="card-text" id="info-text">تم التحقق من عملية الدفع بنجاح. يمكنك الآن تحميل الكتاب مباشرة على جهازك لقراءته فوراً.</p>
             
-            <a id="direct-download-btn" class="btn-action btn-download" href="#">📥 تحميل وفتح الكتاب مباشرة</a>
-            <a id="external-view-btn" class="btn-action btn-view-external" target="_blank" href="#">🌐 فتح في علامة تبويب جديدة</a>
+            <a id="direct-download-btn" class="btn-action btn-download" href="#">📥 تحميل الكتاب على الجهاز</a>
+            <a id="external-view-btn" class="btn-action btn-view-external" target="_blank" href="#">🌐 قراءة الكتاب أونلاين فوراً</a>
         </div>
     </div>
 
@@ -158,19 +158,49 @@
         } else {
             document.getElementById('book-title-display').innerText = bookName;
 
-            // إذا كان الرابط قادم من جيت هاب، يفضل التأكد من أنه الرابط المباشر للملف
+            // إصلاح روابط جيت هاب لتكون روابط مباشرة دائماً
             if (pdfUrl.includes('github.com') && !pdfUrl.includes('raw.githubusercontent.com')) {
                 pdfUrl = pdfUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
             }
 
-            // تطبيق الروابط مباشرة على العناصر لفتحها بشكل طبيعي وآمن
             const downloadBtn = document.getElementById('direct-download-btn');
             const viewBtn = document.getElementById('external-view-btn');
 
-            downloadBtn.href = pdfUrl;
-            downloadBtn.setAttribute('download', bookName + '.pdf'); // محاولة إجبار المتصفح على التحميل
+            // 1. زر التحميل المباشر الآمن لتفادي مشاكل الأمان في المتصفحات
+            downloadBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const originalText = downloadBtn.innerText;
+                downloadBtn.innerText = "⏳ جاري التحميل...";
+                downloadBtn.style.pointerEvents = "none";
 
-            viewBtn.href = pdfUrl;
+                fetch(pdfUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('شبكة ضعيفة أو رابط غير صالح');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = bookName + '.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                        
+                        downloadBtn.innerText = originalText;
+                        downloadBtn.style.pointerEvents = "auto";
+                    })
+                    .catch(err => {
+                        // حل بديل في حال فشل الكود بسبب حماية خوادم معينة (CORS)
+                        window.open(pdfUrl, '_blank');
+                        downloadBtn.innerText = originalText;
+                        downloadBtn.style.pointerEvents = "auto";
+                    });
+            });
+
+            // 2. زر القراءة الفورية: يفتح الكتاب عبر قارئ مستندات جوجل الموثوق لتجنب التحميل الإجباري
+            viewBtn.href = "https://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(pdfUrl);
         }
     </script>
 </body>
