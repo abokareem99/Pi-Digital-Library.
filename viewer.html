@@ -199,8 +199,9 @@
                     });
             });
 
-            // 2. زر القراءة الفورية: يفتح الكتاب عبر قارئ مستندات جوجل الموثوق لتجنب التحميل الإجباري
-            viewBtn.href = "https://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(pdfUrl);
+            // 2. زر القراءة الفورية: تم تعديله ليفك شفرة الرابط التالف ويعيد بناءه ليفهمه قارئ جوجل بشكل صحيح
+            const cleanUrl = encodeURI(decodeURIComponent(pdfUrl));
+            viewBtn.href = "https://docs.google.com/gview?embedded=true&url=" + cleanUrl;
         }
     </script>
 </body>
