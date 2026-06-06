@@ -162,12 +162,12 @@
             const downloadBtn = document.getElementById('direct-download-btn');
             const viewBtn = document.getElementById('external-view-btn');
 
-            // زر التنزيل المباشر من السيرفر السحابي المستقر
+            // 1. تفعيل التنزيل المباشر
             downloadBtn.href = pdfUrl;
             downloadBtn.setAttribute('download', bookName + '.pdf');
 
-            // زر القراءة الفورية المباشرة أونلاين
-            viewBtn.href = pdfUrl;
+            // 2. تفعيل القراءة المباشرة بذكاء عبر منصات عرض الـ PDF القياسية للمتصفحات
+            viewBtn.href = "https://docs.google.com/gview?embedded=true&url=" + encodeURIComponent(pdfUrl);
         }
     </script>
 </body>
