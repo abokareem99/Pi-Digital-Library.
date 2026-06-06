@@ -158,7 +158,8 @@
         } else {
             document.getElementById('book-title-display').innerText = bookName;
 
-            // إصلاح روابط جيت هاب لتكون روابط مباشرة دائماً
+            // تنظيف وإصلاح الرابط إذا كان مشوهاً بـ %2F أو قادماً من جيت هاب
+            pdfUrl = decodeURIComponent(pdfUrl);
             if (pdfUrl.includes('github.com') && !pdfUrl.includes('raw.githubusercontent.com')) {
                 pdfUrl = pdfUrl.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
             }
@@ -166,7 +167,7 @@
             const downloadBtn = document.getElementById('direct-download-btn');
             const viewBtn = document.getElementById('external-view-btn');
 
-            // 1. زر التحميل المباشر الآمن لتفادي مشاكل الأمان في المتصفحات
+            // 1. زر التحميل المباشر عن طريق جلب البيانات كـ Blob
             downloadBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const originalText = downloadBtn.innerText;
@@ -192,16 +193,15 @@
                         downloadBtn.style.pointerEvents = "auto";
                     })
                     .catch(err => {
-                        // حل بديل في حال فشل الكود بسبب حماية خوادم معينة (CORS)
+                        // حل احتياطي إذا منع السيرفر التحميل الخلفي
                         window.open(pdfUrl, '_blank');
                         downloadBtn.innerText = originalText;
                         downloadBtn.style.pointerEvents = "auto";
                     });
             });
 
-            // 2. زر القراءة الفورية: تم تعديله ليفك شفرة الرابط التالف ويعيد بناءه ليفهمه قارئ جوجل بشكل صحيح
-            const cleanUrl = encodeURI(decodeURIComponent(pdfUrl));
-            viewBtn.href = "https://docs.google.com/gview?embedded=true&url=" + cleanUrl;
+            // 2. زر القراءة الفورية المباشر (تجاوز وسيط جوجل لحل مشكلة الحماية بالكامل)
+            viewBtn.href = pdfUrl;
         }
     </script>
 </body>
